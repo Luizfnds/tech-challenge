@@ -4,6 +4,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using TechChallenge.Infrastructure.Data;
+using TechChallenge.Application.Commands.CreateUser;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +12,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // MediatR - CQRS
+// builder.Services.AddMediatR(cfg =>
+//     cfg.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
+    
 builder.Services.AddMediatR(cfg => 
-    cfg.RegisterServicesFromAssemblies(AppDomain.CurrentDomain.GetAssemblies()));
+{
+    cfg.RegisterServicesFromAssembly(typeof(CreateUserCommand).Assembly); // Application assembly
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly); // API assembly
+});
 
 // FluentValidation
 builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());

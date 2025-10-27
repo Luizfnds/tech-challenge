@@ -4,7 +4,7 @@ using TechChallenge.Domain.Repositories;
 
 namespace TechChallenge.Application.Queries.GetUserById;
 
-public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, User>
+public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, User?>
 {
     private readonly IUserRepository _userRepository;
 
@@ -13,7 +13,7 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, User>
         _userRepository = userRepository;
     }
 
-    public async Task<User> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+    public async Task<User?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
         var user = await _userRepository.GetByIdAsync(request.Id);
         return user;

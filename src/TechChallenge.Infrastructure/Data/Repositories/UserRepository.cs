@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TechChallenge.Domain.Entities;
 using TechChallenge.Domain.Repositories;
 using TechChallenge.Infrastructure.Data.Context;
@@ -10,18 +11,18 @@ public class UserRepository : BaseRepository<User>, IUserRepository
     {
     }
 
-    public Task<bool> EmailExistsAsync(string email)
+    public async Task<bool> EmailExistsAsync(string email)
     {
-        throw new NotImplementedException();
+        return await _context.Users.AnyAsync(u => u.Email == email);
     }
 
-    public Task<User> GetByIdAsync(Guid id)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        return await base.GetByIdAsync(id);
     }
 
-    public Task AddAsync(User user)
+    public async Task AddAsync(User user)
     {
-        throw new NotImplementedException();
+        await base.AddAsync(user);
     }
 }
