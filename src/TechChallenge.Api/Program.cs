@@ -5,6 +5,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using TechChallenge.Infrastructure.Data;
 using TechChallenge.Application.Commands.CreateUser;
+using TechChallenge.Infrastructure.AWS;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +27,10 @@ builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssembli
 builder.Services.AddFluentValidationAutoValidation();
 
 // Infrastructure - Database and Repositories
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddDatabaseInfrastructure(builder.Configuration);
+
+// Infrastructure - AWS
+builder.Services.AddAwsInfrastructure(builder.Configuration);
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();

@@ -1,9 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>57e6548f-3012-48a5-9d45-38568e30a544</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +21,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TechChallenge.Application\TechChallenge.Application.csproj" />
-    <ProjectReference Include="..\TechChallenge.Infrastructure\TechChallenge.Infrastructure.csproj" />
+    <ProjectReference Include="..\TechChallenge.Infrastructure.AWS\TechChallenge.Infrastructure.AWS.csproj" />
+    <ProjectReference Include="..\TechChallenge.Infrastructure.Data\TechChallenge.Infrastructure.Data.csproj" />
   </ItemGroup>
 
 </Project>

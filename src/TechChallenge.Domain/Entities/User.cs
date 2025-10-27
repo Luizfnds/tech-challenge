@@ -4,6 +4,7 @@ public class User : BaseEntity
 {
     public string Name { get; private set; }
     public string Email { get; private set; }
+    public string? CognitoUserId { get; private set; }
 
     private User(string name, string email)
     {
@@ -13,4 +14,7 @@ public class User : BaseEntity
 
     public static User Create(string name, string email)
         => new(name, email);
+        
+    public void SetCognitoUserId(string cognitoUserId)
+        => CognitoUserId = cognitoUserId;
 }

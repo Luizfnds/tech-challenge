@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TechChallenge.Domain.Interfaces.Repositories;
-using TechChallenge.Domain.Repositories;
 using TechChallenge.Infrastructure.Data.Context;
 using TechChallenge.Infrastructure.Data.Repositories;
 
@@ -10,7 +9,7 @@ namespace TechChallenge.Infrastructure.Data;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(
+    public static IServiceCollection AddDatabaseInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
     {
