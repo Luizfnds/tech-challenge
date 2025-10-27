@@ -12,4 +12,7 @@ public class User : Entity
         Name = name;
         Email = email;
     }
+
+    public static User Create(string name, string email)
+        => new(name, email);
 }
