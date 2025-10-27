@@ -1,9 +1,8 @@
 using MediatR;
-using TechChallenge.Application.Commands.CreateUser;
 using TechChallenge.Domain.Entities;
 using TechChallenge.Domain.Repositories;
 
-namespace TechChallenge.Application.UseCases.Users.Commands.CreateUser;
+namespace TechChallenge.Application.Commands.CreateUser;
 
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Guid>
 {

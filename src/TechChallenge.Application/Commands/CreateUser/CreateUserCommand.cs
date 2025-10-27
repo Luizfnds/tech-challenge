@@ -1,6 +1,5 @@
 using MediatR;
 using FluentValidation;
-using TechChallenge.Domain.Entities;
 
 namespace TechChallenge.Application.Commands.CreateUser;
 
