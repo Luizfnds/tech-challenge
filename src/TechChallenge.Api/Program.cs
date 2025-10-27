@@ -1,6 +1,9 @@
 using TechChallenge.API.Middlewares;
+using TechChallenge.Infrastructure.Data.Context;
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.EntityFrameworkCore;
+using TechChallenge.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +17,9 @@ builder.Services.AddMediatR(cfg =>
 // FluentValidation
 builder.Services.AddValidatorsFromAssemblies(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddFluentValidationAutoValidation();
+
+// Infrastructure - Database and Repositories
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
@@ -43,10 +49,28 @@ builder.Services.AddCors(options =>
     });
 });
 
-// TODO: Adicionar configuração de Infrastructure (DbContext, Repositories)
-// builder.Services.AddInfrastructure(builder.Configuration);
-
 var app = builder.Build();
+
+// Database Migration and Seed
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        
+        // Aplicar migrations automaticamente em Development
+        if (app.Environment.IsDevelopment())
+        {
+            await context.Database.MigrateAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Erro ao aplicar migrations ou seed de dados");
+    }
+}
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

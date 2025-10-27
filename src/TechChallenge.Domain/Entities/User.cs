@@ -1,8 +1,6 @@
-using TechChallenge.Domain.Common;
-
 namespace TechChallenge.Domain.Entities;
 
-public class User : Entity
+public class User : BaseEntity
 {
     public string Name { get; private set; }
     public string Email { get; private set; }
