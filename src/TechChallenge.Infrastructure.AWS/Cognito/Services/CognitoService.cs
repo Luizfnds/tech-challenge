@@ -4,68 +4,43 @@ using Microsoft.Extensions.Options;
 using TechChallenge.Infrastructure.AWS.Cognito.Configuration;
 using System.Security.Cryptography;
 using System.Text;
-using TechChallenge.Application.Interfaces;
-using TechChallenge.Application.DTOs.Auth;
+using TechChallenge.Domain.Entities;
+using TechChallenge.Application.Contracts.Auth;
+using TechChallenge.Application.Contracts.Auth.Responses;
 
 namespace TechChallenge.Infrastructure.AWS.Cognito.Services;
 
-public class CognitoService : IAuthenticationService
+public class CognitoService(
+    IAmazonCognitoIdentityProvider cognitoClient,
+    IOptions<CognitoSettings> settings) : IAuthenticationService
 {
-    private readonly IAmazonCognitoIdentityProvider _cognitoClient;
-    private readonly CognitoSettings _settings;
+    private readonly IAmazonCognitoIdentityProvider _cognitoClient = cognitoClient;
+    private readonly CognitoSettings _settings = settings.Value;
 
-    public CognitoService(
-        IAmazonCognitoIdentityProvider cognitoClient,
-        IOptions<CognitoSettings> settings)
+    public async Task<string> SignUpAsync(User user, string password, CancellationToken cancellationToken = default)
     {
-        _cognitoClient = cognitoClient;
-        _settings = settings.Value;
-    }
-
-    public async Task<string> SignUpAsync(string email, string password, string name, CancellationToken cancellationToken = default)
-    {
-        var request = new SignUpRequest
+        // 1. Criar usuário no Cognito
+        var signUpRequest = new SignUpRequest
         {
             ClientId = _settings.ClientId,
-            Username = email,
+            Username = user.Email,
             Password = password,
-            SecretHash = GenerateSecretHash(email),
-            UserAttributes = new List<AttributeType>
-            {
-                new AttributeType { Name = "email", Value = email },
-                new AttributeType { Name = "name", Value = name }
-            }
+            SecretHash = GenerateSecretHash(user.Email),
+            UserAttributes =
+            [
+                new() { Name = "email", Value = user.Email },
+                new() { Name = "name", Value = user.Name },
+            ]
         };
 
-        var response = await _cognitoClient.SignUpAsync(request, cancellationToken);
-        return response.UserSub;
+        var signUpResponse = await _cognitoClient.SignUpAsync(signUpRequest, cancellationToken);
+
+        // 2. Adicionar usuário ao grupo correspondente
+        await AddUserToGroupAsync(user.Email, user.Role.Name, cancellationToken);
+
+        return signUpResponse.UserSub;
     }
 
-    public async Task<TokenResponse> SignInAsync(string email, string password, CancellationToken cancellationToken = default)
-    {
-        var request = new AdminInitiateAuthRequest
-        {
-            UserPoolId = _settings.UserPoolId,
-            ClientId = _settings.ClientId,
-            AuthFlow = AuthFlowType.ADMIN_NO_SRP_AUTH,
-            AuthParameters = new Dictionary<string, string>
-            {
-                { "USERNAME", email },
-                { "PASSWORD", password },
-                { "SECRET_HASH", GenerateSecretHash(email) }
-            }
-        };
-
-        var response = await _cognitoClient.AdminInitiateAuthAsync(request, cancellationToken);
-
-        return new TokenResponse
-        {
-            AccessToken = response.AuthenticationResult.AccessToken,
-            IdToken = response.AuthenticationResult.IdToken,
-            RefreshToken = response.AuthenticationResult.RefreshToken,
-            ExpiresIn = response.AuthenticationResult.ExpiresIn
-        };
-    }
 
     public async Task ConfirmSignUpAsync(string email, string confirmationCode, CancellationToken cancellationToken = default)
     {
@@ -80,67 +55,98 @@ public class CognitoService : IAuthenticationService
         await _cognitoClient.ConfirmSignUpAsync(request, cancellationToken);
     }
 
-    public async Task<UserResponse?> GetUserAsync(string email, CancellationToken cancellationToken = default)
+    public async Task ResendConfirmationCodeAsync(string email, CancellationToken cancellationToken = default)
     {
-        try
+        var request = new ResendConfirmationCodeRequest
         {
-            var request = new AdminGetUserRequest
-            {
-                UserPoolId = _settings.UserPoolId,
-                Username = email
-            };
+            ClientId = _settings.ClientId,
+            Username = email,
+            SecretHash = GenerateSecretHash(email)
+        };
 
-            var response = await _cognitoClient.AdminGetUserAsync(request, cancellationToken);
-
-            return new UserResponse
-            {
-                Username = response.Username,
-                Email = response.UserAttributes.FirstOrDefault(a => a.Name == "email")?.Value ?? string.Empty,
-                EmailVerified = bool.Parse(response.UserAttributes.FirstOrDefault(a => a.Name == "email_verified")?.Value ?? "false"),
-                Status = response.UserStatus.Value,
-                CreatedDate = response.UserCreateDate
-            };
-        }
-        catch (UserNotFoundException)
-        {
-            return null;
-        }
+        await _cognitoClient.ResendConfirmationCodeAsync(request, cancellationToken);
     }
 
-    public async Task DeleteUserAsync(string email, CancellationToken cancellationToken = default)
+    public async Task<Token> SignInAsync(string email, string password, CancellationToken cancellationToken = default)
     {
-        var request = new AdminDeleteUserRequest
+        var request = new InitiateAuthRequest
+        {
+            ClientId = _settings.ClientId,
+            AuthFlow = AuthFlowType.USER_PASSWORD_AUTH,
+            AuthParameters = new Dictionary<string, string>
+            {
+                { "USERNAME", email },
+                { "PASSWORD", password },
+                { "SECRET_HASH", GenerateSecretHash(email) }
+            }
+        };
+
+        var response = await _cognitoClient.InitiateAuthAsync(request, cancellationToken);
+
+        return TokenFromAuthResult(response.AuthenticationResult);
+    }
+
+    public async Task ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var request = new ForgotPasswordRequest
+        {
+            ClientId = _settings.ClientId,
+            Username = email,
+            SecretHash = GenerateSecretHash(email)
+        };
+
+        await _cognitoClient.ForgotPasswordAsync(request, cancellationToken);
+    }
+
+    public async Task ResetPasswordAsync(string email, string resetCode, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var request = new ConfirmForgotPasswordRequest
+        {
+            ClientId = _settings.ClientId,
+            Username = email,
+            ConfirmationCode = resetCode,
+            Password = newPassword,
+            SecretHash = GenerateSecretHash(email)
+        };
+
+        await _cognitoClient.ConfirmForgotPasswordAsync(request, cancellationToken);
+    }
+
+    public async Task ChangePasswordAsync(string accessToken, string oldPassword, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var request = new ChangePasswordRequest
+        {
+            AccessToken = accessToken,
+            PreviousPassword = oldPassword,
+            ProposedPassword = newPassword
+        };
+
+        await _cognitoClient.ChangePasswordAsync(request, cancellationToken);
+    }
+
+    public async Task EnableUserAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var request = new AdminEnableUserRequest
         {
             UserPoolId = _settings.UserPoolId,
             Username = email
         };
 
-        await _cognitoClient.AdminDeleteUserAsync(request, cancellationToken);
+        await _cognitoClient.AdminEnableUserAsync(request, cancellationToken);
     }
 
-    public async Task<TokenResponse> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    public async Task DisableUserAsync(string email, CancellationToken cancellationToken = default)
     {
-        var request = new AdminInitiateAuthRequest
+        var request = new AdminDisableUserRequest
         {
             UserPoolId = _settings.UserPoolId,
-            ClientId = _settings.ClientId,
-            AuthFlow = AuthFlowType.REFRESH_TOKEN_AUTH,
-            AuthParameters = new Dictionary<string, string>
-            {
-                { "REFRESH_TOKEN", refreshToken }
-            }
+            Username = email
         };
 
-        var response = await _cognitoClient.AdminInitiateAuthAsync(request, cancellationToken);
-
-        return new TokenResponse
-        {
-            AccessToken = response.AuthenticationResult.AccessToken,
-            IdToken = response.AuthenticationResult.IdToken,
-            RefreshToken = refreshToken,
-            ExpiresIn = response.AuthenticationResult.ExpiresIn
-        };
+        await _cognitoClient.AdminDisableUserAsync(request, cancellationToken);
     }
+
+    #region private methods
 
     private string GenerateSecretHash(string username)
     {
@@ -152,4 +158,28 @@ public class CognitoService : IAuthenticationService
         var hashBytes = hmac.ComputeHash(messageBytes);
         return Convert.ToBase64String(hashBytes);
     }
+
+    private static Token TokenFromAuthResult(AuthenticationResultType authResult, string? refreshToken = null)
+    {
+        return new Token(
+            AccessToken: authResult.AccessToken,
+            IdToken: authResult.IdToken,
+            RefreshToken: refreshToken ?? authResult.RefreshToken,
+            ExpiresIn: authResult.ExpiresIn
+        );
+    }
+
+    private async Task AddUserToGroupAsync(string email, string groupName, CancellationToken cancellationToken)
+    {
+        var request = new AdminAddUserToGroupRequest
+        {
+            UserPoolId = _settings.UserPoolId,
+            Username = email,
+            GroupName = groupName
+        };
+
+        await _cognitoClient.AdminAddUserToGroupAsync(request, cancellationToken);
+    }
+
+    #endregion
 }

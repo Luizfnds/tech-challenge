@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TechChallenge.Domain.Entities;
+using TechChallenge.Domain.Enumerations;
 
 namespace TechChallenge.Infrastructure.Data.Configurations;
 
@@ -25,6 +26,17 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(u => u.Email)
             .IsUnique();
+
+        builder.Property(u => u.Role)
+            .IsRequired()
+            .HasMaxLength(20)
+            .HasConversion(
+                role => role.Name,
+                name => Role.FromName(name)
+            );
+
+        builder.Property(u => u.CognitoUserId)
+            .HasMaxLength(100);
 
         builder.Property(u => u.CreatedAt)
             .IsRequired();

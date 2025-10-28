@@ -1,7 +1,7 @@
 using TechChallenge.Domain.Entities;
 using System.Linq.Expressions;
 
-namespace TechChallenge.Domain.Interfaces.Repositories;
+namespace TechChallenge.Domain.Contracts.Repositories;
 
 public interface IBaseRepository<T> where T : BaseEntity
 {

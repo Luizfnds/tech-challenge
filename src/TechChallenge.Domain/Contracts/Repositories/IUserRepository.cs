@@ -1,6 +1,6 @@
 using TechChallenge.Domain.Entities;
 
-namespace TechChallenge.Domain.Interfaces.Repositories;
+namespace TechChallenge.Domain.Contracts.Repositories;
 
 public interface IUserRepository
 {

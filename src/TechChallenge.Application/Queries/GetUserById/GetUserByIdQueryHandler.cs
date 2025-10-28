@@ -1,6 +1,6 @@
 using MediatR;
 using TechChallenge.Domain.Entities;
-using TechChallenge.Domain.Interfaces.Repositories;
+using TechChallenge.Domain.Contracts.Repositories;
 
 namespace TechChallenge.Application.Queries.GetUserById;
 

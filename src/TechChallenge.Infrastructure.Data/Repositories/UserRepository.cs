@@ -1,16 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using TechChallenge.Domain.Entities;
-using TechChallenge.Domain.Interfaces.Repositories;
+using TechChallenge.Domain.Contracts.Repositories;
 using TechChallenge.Infrastructure.Data.Context;
 
 namespace TechChallenge.Infrastructure.Data.Repositories;
 
-public class UserRepository : BaseRepository<User>, IUserRepository
+public class UserRepository(ApplicationDbContext context) : BaseRepository<User>(context), IUserRepository
 {
-    public UserRepository(ApplicationDbContext context) : base(context)
-    {
-    }
-
     public async Task<bool> EmailExistsAsync(string email)
     {
         return await _context.Users.AnyAsync(u => u.Email == email);
