@@ -2,6 +2,7 @@ using MediatR;
 using TechChallenge.Application.Contracts.Auth;
 using TechChallenge.Application.Common.Models;
 using TechChallenge.Application.Common.Errors;
+using TechChallenge.Application.Common.Exceptions;
 
 namespace TechChallenge.Application.Commands.Auth.ForgotPassword;
 
@@ -20,14 +21,21 @@ public class ForgotPasswordCommandHandler(IAuthenticationService authenticationS
 
             return Result.Success();
         }
-        catch (Exception ex)
+        catch (UserNotFoundException)
         {
-            if (ex.Message.Contains("User does not exist") || 
-                ex.Message.Contains("Username/client id combination not found"))
-            {
-                return Result.Failure(DomainErrors.Authentication.UserNotFound);
-            }
-
+            return Result.Failure(DomainErrors.Authentication.UserNotFound);
+        }
+        catch (LimitExceededException ex)
+        {
+            return Result.Failure(Error.Failure("ForgotPassword.TooManyAttempts", ex.Message));
+        }
+        catch (PasswordResetFailedException ex)
+        {
+            return Result.Failure(
+                Error.Failure("ForgotPassword.Failed", ex.Message));
+        }
+        catch (AuthenticationException ex)
+        {
             return Result.Failure(
                 Error.Failure("ForgotPassword.Failed", $"Failed to initiate password reset: {ex.Message}"));
         }

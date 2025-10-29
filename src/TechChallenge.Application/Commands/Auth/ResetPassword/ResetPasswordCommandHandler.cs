@@ -2,6 +2,7 @@ using MediatR;
 using TechChallenge.Application.Contracts.Auth;
 using TechChallenge.Application.Common.Models;
 using TechChallenge.Application.Common.Errors;
+using TechChallenge.Application.Common.Exceptions;
 
 namespace TechChallenge.Application.Commands.Auth.ResetPassword;
 
@@ -22,22 +23,26 @@ public class ResetPasswordCommandHandler(IAuthenticationService authenticationSe
 
             return Result.Success();
         }
-        catch (Exception ex)
+        catch (InvalidConfirmationCodeException)
         {
-            if (ex.Message.Contains("Invalid verification code") || 
-                ex.Message.Contains("Code mismatch") ||
-                ex.Message.Contains("Attempt limit exceeded"))
-            {
-                return Result.Failure(DomainErrors.Authentication.InvalidConfirmationCode);
-            }
-
-            if (ex.Message.Contains("Password does not conform") ||
-                ex.Message.Contains("Password policy"))
-            {
-                return Result.Failure(DomainErrors.Authentication.WeakPassword);
-            }
-
+            return Result.Failure(DomainErrors.Authentication.InvalidConfirmationCode);
+        }
+        catch (InvalidPasswordException)
+        {
+            return Result.Failure(DomainErrors.Authentication.WeakPassword);
+        }
+        catch (UserNotFoundException)
+        {
+            return Result.Failure(DomainErrors.Authentication.UserNotFound);
+        }
+        catch (PasswordResetFailedException)
+        {
             return Result.Failure(DomainErrors.Authentication.PasswordResetFailed);
+        }
+        catch (AuthenticationException ex)
+        {
+            return Result.Failure(
+                Error.Failure("ResetPassword.Failed", $"Failed to reset password: {ex.Message}"));
         }
     }
 }

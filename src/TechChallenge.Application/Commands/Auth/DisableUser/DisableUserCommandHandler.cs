@@ -2,6 +2,7 @@ using MediatR;
 using TechChallenge.Application.Contracts.Auth;
 using TechChallenge.Application.Common.Models;
 using TechChallenge.Application.Common.Errors;
+using TechChallenge.Application.Common.Exceptions;
 
 namespace TechChallenge.Application.Commands.Auth.DisableUser;
 
@@ -20,16 +21,14 @@ public class DisableUserCommandHandler(IAuthenticationService authenticationServ
 
             return Result.Success();
         }
-        catch (Exception ex)
+        catch (UserNotFoundException)
         {
-            if (ex.Message.Contains("User does not exist") ||
-                ex.Message.Contains("UserNotFoundException"))
-            {
-                return Result.Failure(DomainErrors.Authentication.UserNotFound);
-            }
-
+            return Result.Failure(DomainErrors.Authentication.UserNotFound);
+        }
+        catch (InvalidOperationException ex)
+        {
             return Result.Failure(
-                Error.Failure("DisableUser.Failed", $"Failed to disable user: {ex.Message}"));
+                Error.Failure("DisableUser.Failed", ex.Message));
         }
     }
 }

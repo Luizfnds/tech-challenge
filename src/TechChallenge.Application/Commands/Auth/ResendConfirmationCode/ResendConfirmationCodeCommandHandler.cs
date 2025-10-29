@@ -2,6 +2,7 @@ using MediatR;
 using TechChallenge.Application.Contracts.Auth;
 using TechChallenge.Application.Common.Models;
 using TechChallenge.Application.Common.Errors;
+using TechChallenge.Application.Common.Exceptions;
 
 namespace TechChallenge.Application.Commands.Auth.ResendConfirmationCode;
 
@@ -20,21 +21,22 @@ public class ResendConfirmationCodeCommandHandler(IAuthenticationService authent
 
             return Result.Success();
         }
-        catch (Exception ex)
+        catch (UserNotFoundException)
         {
-            if (ex.Message.Contains("User does not exist") ||
-                ex.Message.Contains("Username/client id combination not found"))
-            {
-                return Result.Failure(DomainErrors.Authentication.UserNotFound);
-            }
-
-            if (ex.Message.Contains("Attempt limit exceeded") ||
-                ex.Message.Contains("LimitExceededException"))
-            {
-                return Result.Failure(
-                    Error.Failure("ResendCode.LimitExceeded", "Too many attempts. Please try again later."));
-            }
-
+            return Result.Failure(DomainErrors.Authentication.UserNotFound);
+        }
+        catch (LimitExceededException ex)
+        {
+            return Result.Failure(
+                Error.Failure("ResendCode.LimitExceeded", ex.Message));
+        }
+        catch (InvalidConfirmationCodeException ex)
+        {
+            return Result.Failure(
+                Error.Failure("ResendCode.Failed", ex.Message));
+        }
+        catch (AuthenticationException ex)
+        {
             return Result.Failure(
                 Error.Failure("ResendCode.Failed", $"Failed to resend confirmation code: {ex.Message}"));
         }

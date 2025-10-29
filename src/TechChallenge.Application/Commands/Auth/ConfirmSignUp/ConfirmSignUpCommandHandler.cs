@@ -2,6 +2,7 @@ using MediatR;
 using TechChallenge.Application.Contracts.Auth;
 using TechChallenge.Application.Common.Models;
 using TechChallenge.Application.Common.Errors;
+using TechChallenge.Application.Common.Exceptions;
 
 namespace TechChallenge.Application.Commands.Auth.ConfirmSignUp;
 
@@ -21,19 +22,16 @@ public class ConfirmSignUpCommandHandler(IAuthenticationService authenticationSe
 
             return Result.Success();
         }
-        catch (Exception ex)
+        catch (InvalidConfirmationCodeException)
         {
-            if (ex.Message.Contains("Invalid verification code") || 
-                ex.Message.Contains("Code mismatch"))
-            {
-                return Result.Failure(DomainErrors.Authentication.InvalidConfirmationCode);
-            }
-
-            if (ex.Message.Contains("User cannot be confirmed"))
-            {
-                return Result.Failure(DomainErrors.Authentication.UserNotFound);
-            }
-
+            return Result.Failure(DomainErrors.Authentication.InvalidConfirmationCode);
+        }
+        catch (UserNotFoundException)
+        {
+            return Result.Failure(DomainErrors.Authentication.UserNotFound);
+        }
+        catch (AuthenticationException ex)
+        {
             return Result.Failure(
                 Error.Failure("ConfirmSignUp.Failed", $"Failed to confirm sign up: {ex.Message}"));
         }

@@ -4,6 +4,7 @@ using TechChallenge.Domain.Entities;
 using TechChallenge.Domain.Contracts.Repositories;
 using TechChallenge.Application.Common.Models;
 using TechChallenge.Application.Common.Errors;
+using TechChallenge.Application.Common.Exceptions;
 
 namespace TechChallenge.Application.Commands.Auth.SignUp;
 
@@ -40,7 +41,19 @@ public class SignUpCommandHandler(IUserRepository userRepository, IAuthenticatio
 
             return Result.Success(user.Id);
         }
-        catch (Exception ex)
+        catch (UserAlreadyExistsException)
+        {
+            return Result.Failure<Guid>(DomainErrors.User.EmailAlreadyExists(request.Email));
+        }
+        catch (InvalidPasswordException ex)
+        {
+            return Result.Failure<Guid>(Error.Validation("SignUp.InvalidPassword", ex.Message));
+        }
+        catch (LimitExceededException ex)
+        {
+            return Result.Failure<Guid>(Error.Failure("SignUp.TooManyAttempts", ex.Message));
+        }
+        catch (AuthenticationException ex)
         {
             return Result.Failure<Guid>(
                 Error.Failure("SignUp.Failed", $"Failed to sign up user: {ex.Message}"));

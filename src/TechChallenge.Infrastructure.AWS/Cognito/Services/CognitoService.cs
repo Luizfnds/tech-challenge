@@ -7,6 +7,9 @@ using System.Text;
 using TechChallenge.Domain.Entities;
 using TechChallenge.Application.Contracts.Auth;
 using TechChallenge.Application.Contracts.Auth.Responses;
+using TechChallenge.Application.Common.Exceptions;
+using CognitoInvalidPasswordException = Amazon.CognitoIdentityProvider.Model.InvalidPasswordException;
+using TechChallenge.Domain.Enumerations;
 
 namespace TechChallenge.Infrastructure.AWS.Cognito.Services;
 
@@ -19,131 +22,292 @@ public class CognitoService(
 
     public async Task<string> SignUpAsync(User user, string password, CancellationToken cancellationToken = default)
     {
-        // 1. Criar usuário no Cognito
-        var signUpRequest = new SignUpRequest
+        try
         {
-            ClientId = _settings.ClientId,
-            Username = user.Email,
-            Password = password,
-            SecretHash = GenerateSecretHash(user.Email),
-            UserAttributes =
-            [
-                new() { Name = "email", Value = user.Email },
-                new() { Name = "name", Value = user.Name },
-            ]
-        };
+            var signUpRequest = new SignUpRequest
+            {
+                ClientId = _settings.ClientId,
+                Username = user.Email,
+                Password = password,
+                SecretHash = GenerateSecretHash(user.Email),
+                UserAttributes =
+                [
+                    new() { Name = "email", Value = user.Email },
+                    new() { Name = "name", Value = user.Name },
+                ]
+            };
 
-        var signUpResponse = await _cognitoClient.SignUpAsync(signUpRequest, cancellationToken);
+            var signUpResponse = await _cognitoClient.SignUpAsync(signUpRequest, cancellationToken);
 
-        // 2. Adicionar usuário ao grupo correspondente
-        await AddUserToGroupAsync(user.Email, user.Role.Name, cancellationToken);
+            await AddUserToGroupAsync(user, cancellationToken);
 
-        return signUpResponse.UserSub;
+            return signUpResponse.UserSub;
+        }
+        catch (UsernameExistsException ex)
+        {
+            throw new UserAlreadyExistsException(user.Email, ex);
+        }
+        catch (CognitoInvalidPasswordException ex)
+        {
+            throw new Application.Common.Exceptions.InvalidPasswordException("Password does not meet security requirements", ex);
+        }
+        catch (TooManyRequestsException ex)
+        {
+            throw new Application.Common.Exceptions.LimitExceededException("Too many sign up attempts. Please try again later", ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new UserAlreadyExistsException($"Sign up failed: {ex.Message}", ex);
+        }
     }
 
 
     public async Task ConfirmSignUpAsync(string email, string confirmationCode, CancellationToken cancellationToken = default)
     {
-        var request = new ConfirmSignUpRequest
+        try
         {
-            ClientId = _settings.ClientId,
-            Username = email,
-            ConfirmationCode = confirmationCode,
-            SecretHash = GenerateSecretHash(email)
-        };
+            var request = new ConfirmSignUpRequest
+            {
+                ClientId = _settings.ClientId,
+                Username = email,
+                ConfirmationCode = confirmationCode,
+                SecretHash = GenerateSecretHash(email)
+            };
 
-        await _cognitoClient.ConfirmSignUpAsync(request, cancellationToken);
+            await _cognitoClient.ConfirmSignUpAsync(request, cancellationToken);
+        }
+        catch (CodeMismatchException ex)
+        {
+            throw new InvalidConfirmationCodeException("Invalid confirmation code", ex);
+        }
+        catch (ExpiredCodeException ex)
+        {
+            throw new InvalidConfirmationCodeException("Confirmation code has expired", ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
+        {
+            throw new Application.Common.Exceptions.UserNotFoundException(email, ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new InvalidConfirmationCodeException($"Failed to confirm sign up: {ex.Message}", ex);
+        }
     }
 
     public async Task ResendConfirmationCodeAsync(string email, CancellationToken cancellationToken = default)
     {
-        var request = new ResendConfirmationCodeRequest
+        try
         {
-            ClientId = _settings.ClientId,
-            Username = email,
-            SecretHash = GenerateSecretHash(email)
-        };
+            var request = new ResendConfirmationCodeRequest
+            {
+                ClientId = _settings.ClientId,
+                Username = email,
+                SecretHash = GenerateSecretHash(email)
+            };
 
-        await _cognitoClient.ResendConfirmationCodeAsync(request, cancellationToken);
+            await _cognitoClient.ResendConfirmationCodeAsync(request, cancellationToken);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
+        {
+            throw new Application.Common.Exceptions.UserNotFoundException(email, ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.LimitExceededException ex)
+        {
+            throw new Application.Common.Exceptions.LimitExceededException("Too many requests. Please try again later", ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new InvalidConfirmationCodeException($"Failed to resend confirmation code: {ex.Message}", ex);
+        }
     }
 
     public async Task<Token> SignInAsync(string email, string password, CancellationToken cancellationToken = default)
     {
-        var request = new InitiateAuthRequest
+        try
         {
-            ClientId = _settings.ClientId,
-            AuthFlow = AuthFlowType.USER_PASSWORD_AUTH,
-            AuthParameters = new Dictionary<string, string>
+            var request = new InitiateAuthRequest
             {
-                { "USERNAME", email },
-                { "PASSWORD", password },
-                { "SECRET_HASH", GenerateSecretHash(email) }
-            }
-        };
+                ClientId = _settings.ClientId,
+                AuthFlow = AuthFlowType.USER_PASSWORD_AUTH,
+                AuthParameters = new Dictionary<string, string>
+                {
+                    { "USERNAME", email },
+                    { "PASSWORD", password },
+                    { "SECRET_HASH", GenerateSecretHash(email) }
+                }
+            };
 
-        var response = await _cognitoClient.InitiateAuthAsync(request, cancellationToken);
+            var response = await _cognitoClient.InitiateAuthAsync(request, cancellationToken);
 
-        return TokenFromAuthResult(response.AuthenticationResult);
+            return TokenFromAuthResult(response.AuthenticationResult);
+        }
+        catch (NotAuthorizedException ex)
+        {
+            throw new InvalidCredentialsException("Invalid email or password", ex);
+        }
+        catch (UserNotConfirmedException ex)
+        {
+            throw new EmailNotConfirmedException("Email address is not confirmed", ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
+        {
+            throw new InvalidCredentialsException("Invalid email or password", ex);
+        }
+        catch (PasswordResetRequiredException ex)
+        {
+            throw new PasswordResetFailedException("Password reset is required", ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.InvalidPasswordException ex)
+        {
+            throw new InvalidCredentialsException("Invalid email or password", ex);
+        }
+        catch (TooManyRequestsException ex)
+        {
+            throw new Application.Common.Exceptions.LimitExceededException("Too many sign in attempts. Please try again later", ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new InvalidCredentialsException($"Sign in failed: {ex.Message}", ex);
+        }
     }
 
     public async Task ForgotPasswordAsync(string email, CancellationToken cancellationToken = default)
     {
-        var request = new ForgotPasswordRequest
+        try
         {
-            ClientId = _settings.ClientId,
-            Username = email,
-            SecretHash = GenerateSecretHash(email)
-        };
+            var request = new ForgotPasswordRequest
+            {
+                ClientId = _settings.ClientId,
+                Username = email,
+                SecretHash = GenerateSecretHash(email)
+            };
 
-        await _cognitoClient.ForgotPasswordAsync(request, cancellationToken);
+            await _cognitoClient.ForgotPasswordAsync(request, cancellationToken);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
+        {
+            throw new Application.Common.Exceptions.UserNotFoundException(email, ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.LimitExceededException ex)
+        {
+            throw new Application.Common.Exceptions.LimitExceededException("Too many requests. Please try again later", ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new PasswordResetFailedException($"Failed to initiate password reset: {ex.Message}", ex);
+        }
     }
 
     public async Task ResetPasswordAsync(string email, string resetCode, string newPassword, CancellationToken cancellationToken = default)
     {
-        var request = new ConfirmForgotPasswordRequest
+        try
         {
-            ClientId = _settings.ClientId,
-            Username = email,
-            ConfirmationCode = resetCode,
-            Password = newPassword,
-            SecretHash = GenerateSecretHash(email)
-        };
+            var request = new ConfirmForgotPasswordRequest
+            {
+                ClientId = _settings.ClientId,
+                Username = email,
+                ConfirmationCode = resetCode,
+                Password = newPassword,
+                SecretHash = GenerateSecretHash(email)
+            };
 
-        await _cognitoClient.ConfirmForgotPasswordAsync(request, cancellationToken);
+            await _cognitoClient.ConfirmForgotPasswordAsync(request, cancellationToken);
+        }
+        catch (CodeMismatchException ex)
+        {
+            throw new InvalidConfirmationCodeException("Invalid reset code", ex);
+        }
+        catch (ExpiredCodeException ex)
+        {
+            throw new InvalidConfirmationCodeException("Reset code has expired", ex);
+        }
+        catch (CognitoInvalidPasswordException ex)
+        {
+            throw new Application.Common.Exceptions.InvalidPasswordException("Password does not meet security requirements", ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
+        {
+            throw new Application.Common.Exceptions.UserNotFoundException(email, ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new PasswordResetFailedException($"Failed to reset password: {ex.Message}", ex);
+        }
     }
 
     public async Task ChangePasswordAsync(string accessToken, string oldPassword, string newPassword, CancellationToken cancellationToken = default)
     {
-        var request = new ChangePasswordRequest
+        try
         {
-            AccessToken = accessToken,
-            PreviousPassword = oldPassword,
-            ProposedPassword = newPassword
-        };
+            var request = new ChangePasswordRequest
+            {
+                AccessToken = accessToken,
+                PreviousPassword = oldPassword,
+                ProposedPassword = newPassword
+            };
 
-        await _cognitoClient.ChangePasswordAsync(request, cancellationToken);
+            await _cognitoClient.ChangePasswordAsync(request, cancellationToken);
+        }
+        catch (NotAuthorizedException ex)
+        {
+            throw new InvalidCredentialsException("Invalid current password", ex);
+        }
+        catch (CognitoInvalidPasswordException ex)
+        {
+            throw new Application.Common.Exceptions.InvalidPasswordException("New password does not meet security requirements", ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.LimitExceededException ex)
+        {
+            throw new Application.Common.Exceptions.LimitExceededException("Too many requests. Please try again later", ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new PasswordResetFailedException($"Failed to change password: {ex.Message}", ex);
+        }
     }
 
     public async Task EnableUserAsync(string email, CancellationToken cancellationToken = default)
     {
-        var request = new AdminEnableUserRequest
+        try
         {
-            UserPoolId = _settings.UserPoolId,
-            Username = email
-        };
+            var request = new AdminEnableUserRequest
+            {
+                UserPoolId = _settings.UserPoolId,
+                Username = email
+            };
 
-        await _cognitoClient.AdminEnableUserAsync(request, cancellationToken);
+            await _cognitoClient.AdminEnableUserAsync(request, cancellationToken);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
+        {
+            throw new Application.Common.Exceptions.UserNotFoundException(email, ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new InvalidOperationException($"Failed to enable user: {ex.Message}", ex);
+        }
     }
 
     public async Task DisableUserAsync(string email, CancellationToken cancellationToken = default)
     {
-        var request = new AdminDisableUserRequest
+        try
         {
-            UserPoolId = _settings.UserPoolId,
-            Username = email
-        };
+            var request = new AdminDisableUserRequest
+            {
+                UserPoolId = _settings.UserPoolId,
+                Username = email
+            };
 
-        await _cognitoClient.AdminDisableUserAsync(request, cancellationToken);
+            await _cognitoClient.AdminDisableUserAsync(request, cancellationToken);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
+        {
+            throw new Application.Common.Exceptions.UserNotFoundException(email, ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new InvalidOperationException($"Failed to disable user: {ex.Message}", ex);
+        }
     }
 
     #region private methods
@@ -169,16 +333,56 @@ public class CognitoService(
         );
     }
 
-    private async Task AddUserToGroupAsync(string email, string groupName, CancellationToken cancellationToken)
+    private async Task AddUserToGroupAsync(User user, CancellationToken cancellationToken, bool createGroupIfNotExists = true)
     {
-        var request = new AdminAddUserToGroupRequest
+        try
         {
-            UserPoolId = _settings.UserPoolId,
-            Username = email,
-            GroupName = groupName
-        };
+            var request = new AdminAddUserToGroupRequest
+            {
+                UserPoolId = _settings.UserPoolId,
+                Username = user.Email,
+                GroupName = user.Role.Name
+            };
 
-        await _cognitoClient.AdminAddUserToGroupAsync(request, cancellationToken);
+            await _cognitoClient.AdminAddUserToGroupAsync(request, cancellationToken);
+        }
+        catch (ResourceNotFoundException) when (createGroupIfNotExists)
+        {
+            // Create the group and retry adding the user without infinite recursion
+            await CreateGroupFromRoleAsync(user.Role, cancellationToken);
+            await AddUserToGroupAsync(user, cancellationToken, createGroupIfNotExists: false);
+        }
+        catch (ResourceNotFoundException ex)
+        {
+            throw new InvalidOperationException($"Group '{user.Role.Name}' does not exist in the user pool", ex);
+        }
+        catch (Amazon.CognitoIdentityProvider.Model.UserNotFoundException ex)
+        {
+            throw new Application.Common.Exceptions.UserNotFoundException(user.Email, ex);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new InvalidOperationException($"Failed to add user to group '{user.Role.Name}': {ex.Message}", ex);
+        }
+    }
+
+    private async Task CreateGroupFromRoleAsync(Role role, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var request = new CreateGroupRequest
+            {
+                UserPoolId = _settings.UserPoolId,
+                GroupName = role.Name,
+                Description = $"Auto-generated group for role: {role.Name}"
+            };
+
+            await _cognitoClient.CreateGroupAsync(request, cancellationToken);
+        }
+        catch (AmazonCognitoIdentityProviderException ex)
+        {
+            throw new InvalidOperationException($"Failed to create group with role '{role}': {ex.Message}", ex);
+        }
     }
 
     #endregion

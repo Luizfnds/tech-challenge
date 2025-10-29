@@ -3,6 +3,7 @@ using TechChallenge.Application.Contracts.Auth;
 using TechChallenge.Application.Contracts.Auth.Responses;
 using TechChallenge.Application.Common.Models;
 using TechChallenge.Application.Common.Errors;
+using TechChallenge.Application.Common.Exceptions;
 
 namespace TechChallenge.Application.Commands.Auth.SignIn;
 
@@ -22,25 +23,28 @@ public class SignInCommandHandler(IAuthenticationService authenticationService) 
 
             return Result.Success(token);
         }
-        catch (Exception ex)
+        catch (InvalidCredentialsException)
         {
-            // Tratar erros específicos do Cognito
-            if (ex.Message.Contains("Incorrect username or password") || 
-                ex.Message.Contains("User does not exist"))
-            {
-                return Result.Failure<Token>(DomainErrors.Authentication.InvalidCredentials);
-            }
-
-            if (ex.Message.Contains("User is disabled"))
-            {
-                return Result.Failure<Token>(DomainErrors.Authentication.UserDisabled);
-            }
-
-            if (ex.Message.Contains("User is not confirmed"))
-            {
-                return Result.Failure<Token>(DomainErrors.Authentication.EmailNotConfirmed);
-            }
-
+            return Result.Failure<Token>(DomainErrors.Authentication.InvalidCredentials);
+        }
+        catch (EmailNotConfirmedException)
+        {
+            return Result.Failure<Token>(DomainErrors.Authentication.EmailNotConfirmed);
+        }
+        catch (UserDisabledException)
+        {
+            return Result.Failure<Token>(DomainErrors.Authentication.UserDisabled);
+        }
+        catch (UserNotFoundException)
+        {
+            return Result.Failure<Token>(DomainErrors.Authentication.InvalidCredentials); // Não expor se o usuário existe
+        }
+        catch (LimitExceededException ex)
+        {
+            return Result.Failure<Token>(Error.Failure("SignIn.TooManyAttempts", ex.Message));
+        }
+        catch (AuthenticationException ex)
+        {
             return Result.Failure<Token>(
                 Error.Failure("SignIn.Failed", $"Failed to sign in: {ex.Message}"));
         }
