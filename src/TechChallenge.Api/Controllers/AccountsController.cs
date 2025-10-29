@@ -10,6 +10,7 @@ using TechChallenge.Application.Commands.Auth.ResetPassword;
 using TechChallenge.Application.Commands.Auth.ChangePassword;
 using TechChallenge.Application.Commands.Auth.EnableUser;
 using TechChallenge.Application.Commands.Auth.DisableUser;
+using TechChallenge.API.Extensions;
 
 namespace TechChallenge.API.Controllers;
 
@@ -24,14 +25,18 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> SignUp([FromBody] SignUpCommand command)
     {
         var result = await _mediator.Send(command);
 
+        if (result.IsFailure)
+            return result.ToActionResult();
+
         return CreatedAtAction(
             nameof(SignUp),
-            new { id = result },
-            new { userId = result, message = "User registered successfully. Please check your email to confirm your account." });
+            new { id = result.Value },
+            new { userId = result.Value, message = "User registered successfully. Please check your email to confirm your account." });
     }
 
     [HttpPost("confirm-signup")]
@@ -40,7 +45,11 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ConfirmSignUp([FromBody] ConfirmSignUpCommand command)
     {
-        await _mediator.Send(command);
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
         return Ok(new { message = "Email confirmed successfully. You can now sign in." });
     }
 
@@ -48,9 +57,14 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ResendConfirmationCode([FromBody] ResendConfirmationCodeCommand command)
     {
-        await _mediator.Send(command);
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
         return Ok(new { message = "Confirmation code resent successfully. Please check your email." });
     }
 
@@ -61,17 +75,22 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> SignIn([FromBody] SignInCommand command)
     {
-        var token = await _mediator.Send(command);
-        return Ok(token);
+        var result = await _mediator.Send(command);
+        return result.ToActionResult();
     }
 
     [HttpPost("forgot-password")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
     {
-        await _mediator.Send(command);
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
         return Ok(new { message = "Password reset code sent to your email." });
     }
 
@@ -81,7 +100,11 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
     {
-        await _mediator.Send(command);
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
         return Ok(new { message = "Password reset successfully. You can now sign in with your new password." });
     }
 
@@ -92,7 +115,11 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
     {
-        await _mediator.Send(command);
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
         return Ok(new { message = "Password changed successfully." });
     }
 
@@ -102,9 +129,14 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> EnableUser([FromBody] EnableUserCommand command)
     {
-        await _mediator.Send(command);
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
         return Ok(new { message = "User enabled successfully." });
     }
 
@@ -114,9 +146,14 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DisableUser([FromBody] DisableUserCommand command)
     {
-        await _mediator.Send(command);
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
         return Ok(new { message = "User disabled successfully." });
     }
 }

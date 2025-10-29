@@ -1,9 +1,10 @@
 using MediatR;
 using FluentValidation;
+using TechChallenge.Application.Common.Models;
 
 namespace TechChallenge.Application.Commands.Auth.ConfirmSignUp;
 
-public record ConfirmSignUpCommand(string Email, string ConfirmationCode) : IRequest;
+public record ConfirmSignUpCommand(string Email, string ConfirmationCode) : IRequest<Result>;
 
 public class ConfirmSignUpCommandValidator : AbstractValidator<ConfirmSignUpCommand>
 {

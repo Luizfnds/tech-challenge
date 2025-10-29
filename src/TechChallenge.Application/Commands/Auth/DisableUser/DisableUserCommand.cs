@@ -1,9 +1,10 @@
 using MediatR;
 using FluentValidation;
+using TechChallenge.Application.Common.Models;
 
 namespace TechChallenge.Application.Commands.Auth.DisableUser;
 
-public record DisableUserCommand(string Email) : IRequest;
+public record DisableUserCommand(string Email) : IRequest<Result>;
 
 public class DisableUserCommandValidator : AbstractValidator<DisableUserCommand>
 {

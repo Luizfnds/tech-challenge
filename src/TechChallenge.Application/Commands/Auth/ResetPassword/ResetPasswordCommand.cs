@@ -1,9 +1,10 @@
 using MediatR;
 using FluentValidation;
+using TechChallenge.Application.Common.Models;
 
 namespace TechChallenge.Application.Commands.Auth.ResetPassword;
 
-public record ResetPasswordCommand(string Email, string ResetCode, string NewPassword) : IRequest;
+public record ResetPasswordCommand(string Email, string ResetCode, string NewPassword) : IRequest<Result>;
 
 public class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordCommand>
 {

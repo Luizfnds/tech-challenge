@@ -1,34 +1,49 @@
 using MediatR;
-using TechChallenge.Application.Contracts.Auth;using TechChallenge.Domain.Entities;
+using TechChallenge.Application.Contracts.Auth;
+using TechChallenge.Domain.Entities;
 using TechChallenge.Domain.Contracts.Repositories;
+using TechChallenge.Application.Common.Models;
+using TechChallenge.Application.Common.Errors;
 
 namespace TechChallenge.Application.Commands.Auth.SignUp;
 
-public class SignUpCommandHandler(IUserRepository userRepository, IAuthenticationService authenticationService) : IRequestHandler<SignUpCommand, Guid>
+public class SignUpCommandHandler(IUserRepository userRepository, IAuthenticationService authenticationService) : IRequestHandler<SignUpCommand, Result<Guid>>
 {
     private readonly IUserRepository _userRepository = userRepository;
     private readonly IAuthenticationService _authenticationService = authenticationService;
 
-    public async Task<Guid> Handle(SignUpCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Guid>> Handle(SignUpCommand request, CancellationToken cancellationToken)
     {
-        if (await _userRepository.EmailExistsAsync(request.Email))
-            throw new InvalidOperationException("Email already exists");
+        try
+        {
+            // Verificar se o email já existe
+            if (await _userRepository.EmailExistsAsync(request.Email))
+                return Result.Failure<Guid>(DomainErrors.User.EmailAlreadyExists(request.Email));
 
-        var user = User.CreateUser(
-            request.Name,
-            request.Email
-        );
+            // Criar usuário
+            var user = User.CreateUser(
+                request.Name,
+                request.Email
+            );
 
-        var cognitoUserId = await _authenticationService.SignUpAsync(
-            user,
-            request.Password,
-            cancellationToken
-        );
+            // Registrar no Cognito
+            var cognitoUserId = await _authenticationService.SignUpAsync(
+                user,
+                request.Password,
+                cancellationToken
+            );
 
-        user.SetCognitoUserId(cognitoUserId);
+            user.SetCognitoUserId(cognitoUserId);
 
-        await _userRepository.AddAsync(user);
+            // Salvar no banco de dados
+            await _userRepository.AddAsync(user);
 
-        return user.Id;
+            return Result.Success(user.Id);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<Guid>(
+                Error.Failure("SignUp.Failed", $"Failed to sign up user: {ex.Message}"));
+        }
     }
 }

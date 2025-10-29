@@ -1,9 +1,10 @@
 using MediatR;
 using FluentValidation;
+using TechChallenge.Application.Common.Models;
 
 namespace TechChallenge.Application.Commands.Auth.ResendConfirmationCode;
 
-public record ResendConfirmationCodeCommand(string Email) : IRequest;
+public record ResendConfirmationCodeCommand(string Email) : IRequest<Result>;
 
 public class ResendConfirmationCodeCommandValidator : AbstractValidator<ResendConfirmationCodeCommand>
 {

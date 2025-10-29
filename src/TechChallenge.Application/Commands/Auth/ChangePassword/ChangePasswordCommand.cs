@@ -1,9 +1,10 @@
 using MediatR;
 using FluentValidation;
+using TechChallenge.Application.Common.Models;
 
 namespace TechChallenge.Application.Commands.Auth.ChangePassword;
 
-public record ChangePasswordCommand(string AccessToken, string OldPassword, string NewPassword) : IRequest;
+public record ChangePasswordCommand(string AccessToken, string OldPassword, string NewPassword) : IRequest<Result>;
 
 public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCommand>
 {

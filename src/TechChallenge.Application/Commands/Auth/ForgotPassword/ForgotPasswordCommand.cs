@@ -1,9 +1,10 @@
 using MediatR;
 using FluentValidation;
+using TechChallenge.Application.Common.Models;
 
 namespace TechChallenge.Application.Commands.Auth.ForgotPassword;
 
-public record ForgotPasswordCommand(string Email) : IRequest;
+public record ForgotPasswordCommand(string Email) : IRequest<Result>;
 
 public class ForgotPasswordCommandValidator : AbstractValidator<ForgotPasswordCommand>
 {

@@ -1,10 +1,11 @@
 using MediatR;
 using FluentValidation;
 using TechChallenge.Application.Contracts.Auth.Responses;
+using TechChallenge.Application.Common.Models;
 
 namespace TechChallenge.Application.Commands.Auth.SignIn;
 
-public record SignInCommand(string Email, string Password) : IRequest<Token>;
+public record SignInCommand(string Email, string Password) : IRequest<Result<Token>>;
 
 public class SignInCommandValidator : AbstractValidator<SignInCommand>
 {
