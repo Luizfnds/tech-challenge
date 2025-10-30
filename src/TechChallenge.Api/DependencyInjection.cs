@@ -42,13 +42,16 @@ public static class DependencyInjection
                 ValidateIssuer = true,
                 ValidIssuer = authority,
                 ValidateLifetime = true,
-                ValidateAudience = true,
-                ValidAudiences = new[] { clientId },
+                ValidateAudience = false,
                 ClockSkew = TimeSpan.Zero
             };
-            options.MetadataAddress = $"{authority}/.well-known/jwks.json";
+            options.MetadataAddress = $"{authority}/.well-known/openid-configuration";
+            options.RequireHttpsMetadata = true;
+            options.SaveToken = true;
+            options.RefreshOnIssuerKeyNotFound = true;
+            options.BackchannelTimeout = TimeSpan.FromSeconds(30);
 
-            // Logging para debug
+            // Logging events for debugging and monitoring
             options.Events = new JwtBearerEvents
             {
                 OnAuthenticationFailed = context =>
@@ -60,15 +63,10 @@ public static class DependencyInjection
                 OnTokenValidated = context =>
                 {
                     var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                    logger.LogInformation("Token validated successfully for user: {User}",
-                        context.Principal?.Identity?.Name ?? "Unknown");
-                    return Task.CompletedTask;
-                },
-                OnChallenge = context =>
-                {
-                    var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<Program>>();
-                    logger.LogWarning("Authorization challenge: {Error} - {ErrorDescription}",
-                        context.Error, context.ErrorDescription);
+                    var username = context.Principal?.FindFirst("username")?.Value 
+                                ?? context.Principal?.FindFirst("sub")?.Value 
+                                ?? "Unknown";
+                    logger.LogInformation("Token validated for user: {User}", username);
                     return Task.CompletedTask;
                 }
             };
