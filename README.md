@@ -1,4 +1,4 @@
-# 🚀 TechChallenge - FIAP Pós-Graduação
+# 🚀 FCG - FIAP Pós-Graduação
 
 API REST de autenticação e gerenciamento de usuários com AWS Cognito.  
 **Projeto da Pós-Graduação em Arquitetura de Sistemas .NET - FIAP 2025**
@@ -113,7 +113,7 @@ builder.Services.AddAwsInfrastructure(configuration);   // Cognito
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=TechChallengeDB;Trusted_Connection=True;"
+    "DefaultConnection": "Server=localhost;Database=FCGDB;Trusted_Connection=True;"
   },
   "AWS": {
     "Region": "us-east-1",

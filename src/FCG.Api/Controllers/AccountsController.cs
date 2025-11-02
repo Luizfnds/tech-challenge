@@ -1,0 +1,159 @@
+using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using FCG.Application.Commands.Auth.SignUp;
+using FCG.Application.Commands.Auth.ConfirmSignUp;
+using FCG.Application.Commands.Auth.ResendConfirmationCode;
+using FCG.Application.Commands.Auth.SignIn;
+using FCG.Application.Commands.Auth.ForgotPassword;
+using FCG.Application.Commands.Auth.ResetPassword;
+using FCG.Application.Commands.Auth.ChangePassword;
+using FCG.Application.Commands.Auth.EnableUser;
+using FCG.Application.Commands.Auth.DisableUser;
+using FCG.API.Extensions;
+
+namespace FCG.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class AccountsController(IMediator mediator, ILogger<AccountsController> logger) : ControllerBase
+{
+    private readonly IMediator _mediator = mediator;
+    private readonly ILogger<AccountsController> _logger = logger;
+
+    [HttpPost("signup")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> SignUp([FromBody] SignUpCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        return CreatedAtAction(
+            nameof(SignUp),
+            new { id = result.Value },
+            new { userId = result.Value, message = "User registered successfully. Please check your email to confirm your account." });
+    }
+
+    [HttpPost("confirm-signup")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ConfirmSignUp([FromBody] ConfirmSignUpCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        return Ok(new { message = "Email confirmed successfully. You can now sign in." });
+    }
+
+    [HttpPost("resend-confirmation-code")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResendConfirmationCode([FromBody] ResendConfirmationCodeCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        return Ok(new { message = "Confirmation code resent successfully. Please check your email." });
+    }
+
+    [HttpPost("signin")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SignIn([FromBody] SignInCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return result.ToActionResult();
+    }
+
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        return Ok(new { message = "Password reset code sent to your email." });
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        return Ok(new { message = "Password reset successfully. You can now sign in with your new password." });
+    }
+
+    [HttpPost("change-password")]
+    [Authorize(Policy = "UserOrAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        return Ok(new { message = "Password changed successfully." });
+    }
+
+    [HttpPost("enable-user")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> EnableUser([FromBody] EnableUserCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        return Ok(new { message = "User enabled successfully." });
+    }
+
+    [HttpPost("disable-user")]
+    [Authorize(Policy = "AdminOnly")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DisableUser([FromBody] DisableUserCommand command)
+    {
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        return Ok(new { message = "User disabled successfully." });
+    }
+}
