@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using FCG.Application.Contracts.Auth;
 using FCG.Infrastructure.AWS.Cognito.Configurations;
 using FCG.Infrastructure.AWS.Cognito.Services;
+using FCG.Infrastructure.AWS.Seed;
 
 namespace FCG.Infrastructure.AWS;
 
@@ -56,6 +57,9 @@ public static class DependencyInjection
 
         // Services
         services.AddScoped<IAuthenticationService, CognitoService>();
+        
+        // Seeder
+        services.AddScoped<CognitoSeeder>();
 
         return services;
     }

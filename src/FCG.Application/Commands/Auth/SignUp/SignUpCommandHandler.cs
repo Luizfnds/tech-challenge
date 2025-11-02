@@ -34,7 +34,7 @@ public class SignUpCommandHandler(IUserRepository userRepository, IAuthenticatio
                 cancellationToken
             );
 
-            user.SetCognitoUserId(cognitoUserId);
+            user.SetAccountId(cognitoUserId);
 
             // Salvar no banco de dados
             await _userRepository.AddAsync(user);

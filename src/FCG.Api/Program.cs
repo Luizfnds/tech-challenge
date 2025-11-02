@@ -6,6 +6,9 @@ using Microsoft.EntityFrameworkCore;
 using FCG.Infrastructure.Data;
 using FCG.Infrastructure.AWS;
 using FCG.Application;
+using FCG.Infrastructure.Data.Seed;
+using FCG.Infrastructure.AWS.Seed;
+using FCG.Domain.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,20 +33,34 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    try
+
+    var context = services.GetRequiredService<ApplicationDbContext>();
+    
+    if (app.Environment.IsDevelopment())
     {
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        
-        if (app.Environment.IsDevelopment())
-        {
-            await context.Database.MigrateAsync();
-        }
+        await context.Database.MigrateAsync();
     }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Erro ao aplicar migrations ou seed de dados");
-    }
+    
+    // Seed admin user from environment variables
+    var adminEmail = builder.Configuration["Admin:Email"];
+    var adminPassword = builder.Configuration["Admin:Password"];
+    var adminName = "Administrator";
+
+    ArgumentException.ThrowIfNullOrEmpty(adminEmail, "Admin email is required for seeding");
+    ArgumentException.ThrowIfNullOrEmpty(adminPassword, "Admin password is required for seeding");
+
+    // Create admin user entity
+    var adminUser = User.CreateAdmin(adminName, adminEmail);
+    
+    // Seed Cognito (groups and admin user)
+    var cognitoSeeder = services.GetRequiredService<CognitoSeeder>();
+    var accountId = await cognitoSeeder.SeedAdminAsync(adminUser, adminPassword);
+
+    adminUser.SetAccountId(accountId);
+    
+    // Seed Database (admin user)
+    var databaseSeeder = services.GetRequiredService<DatabaseSeeder>();
+    await databaseSeeder.SeedAdminAsync(adminUser);
 }
 
 // Configure the HTTP request pipeline

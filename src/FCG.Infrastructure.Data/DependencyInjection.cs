@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using FCG.Application.Contracts.Repositories;
 using FCG.Infrastructure.Data.Context;
 using FCG.Infrastructure.Data.Repositories;
+using FCG.Infrastructure.Data.Seed;
 
 namespace FCG.Infrastructure.Data;
 
@@ -16,6 +17,8 @@ public static class DependencyInjection
         services.AddDbContext(configuration);
 
         services.AddRepositories();
+        
+        services.AddSeeders();
 
         return services;
     }
@@ -52,6 +55,13 @@ public static class DependencyInjection
     {
         services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
         services.AddScoped<IUserRepository, UserRepository>();
+
+        return services;
+    }
+    
+    private static IServiceCollection AddSeeders(this IServiceCollection services)
+    {
+        services.AddScoped<DatabaseSeeder>();
 
         return services;
     }

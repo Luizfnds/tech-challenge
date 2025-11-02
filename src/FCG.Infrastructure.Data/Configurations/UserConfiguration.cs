@@ -35,7 +35,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                 name => Role.FromName(name)
             );
 
-        builder.Property(u => u.CognitoUserId)
+        builder.Property(u => u.AccountId)
             .HasMaxLength(100);
 
         builder.Property(u => u.CreatedAt)

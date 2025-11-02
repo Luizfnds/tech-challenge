@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FCG.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251102164919_UserAccountId")]
+    [Migration("20251102180326_UserAccountId")]
     partial class UserAccountId
     {
         /// <inheritdoc />
@@ -31,7 +31,7 @@ namespace FCG.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CognitoUserId")
+                    b.Property<string>("AccountId")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 

@@ -346,12 +346,6 @@ public class CognitoService(
 
             await _cognitoClient.AdminAddUserToGroupAsync(request, cancellationToken);
         }
-        catch (ResourceNotFoundException) when (createGroupIfNotExists)
-        {
-            // Create the group and retry adding the user without infinite recursion
-            await CreateGroupFromRoleAsync(user.Role, cancellationToken);
-            await AddUserToGroupAsync(user, cancellationToken, createGroupIfNotExists: false);
-        }
         catch (ResourceNotFoundException ex)
         {
             throw new InvalidOperationException($"Group '{user.Role.Name}' does not exist in the user pool", ex);
@@ -363,25 +357,6 @@ public class CognitoService(
         catch (AmazonCognitoIdentityProviderException ex)
         {
             throw new InvalidOperationException($"Failed to add user to group '{user.Role.Name}': {ex.Message}", ex);
-        }
-    }
-
-    private async Task CreateGroupFromRoleAsync(Role role, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var request = new CreateGroupRequest
-            {
-                UserPoolId = _settings.UserPoolId,
-                GroupName = role.Name,
-                Description = $"Auto-generated group for role: {role.Name}"
-            };
-
-            await _cognitoClient.CreateGroupAsync(request, cancellationToken);
-        }
-        catch (AmazonCognitoIdentityProviderException ex)
-        {
-            throw new InvalidOperationException($"Failed to create group with role '{role}': {ex.Message}", ex);
         }
     }
 

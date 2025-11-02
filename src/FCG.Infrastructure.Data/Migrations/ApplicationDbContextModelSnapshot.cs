@@ -28,7 +28,7 @@ namespace FCG.Infrastructure.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CognitoUserId")
+                    b.Property<string>("AccountId")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 

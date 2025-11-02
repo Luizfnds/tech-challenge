@@ -7,7 +7,7 @@ public class User : BaseEntity
     public string Name { get; private set; }
     public string Email { get; private set; }
     public Role Role { get; private set; }
-    public string? CognitoUserId { get; private set; }
+    public string? AccountId { get; private set; }
 
     private User(string name, string email, Role role)
     {
@@ -22,6 +22,6 @@ public class User : BaseEntity
     public static User CreateAdmin(string name, string email)
         => new(name, email, Role.Admin);
 
-    public void SetCognitoUserId(string cognitoUserId)
-        => CognitoUserId = cognitoUserId;
+    public void SetAccountId(string accountId)
+        => AccountId = accountId;
 }
