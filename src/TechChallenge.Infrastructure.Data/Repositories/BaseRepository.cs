@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using TechChallenge.Domain.Entities;
 using TechChallenge.Infrastructure.Data.Context;
 using System.Linq.Expressions;
-using TechChallenge.Domain.Contracts.Repositories;
+using TechChallenge.Application.Contracts.Repositories;
 
 namespace TechChallenge.Infrastructure.Data.Repositories;
 

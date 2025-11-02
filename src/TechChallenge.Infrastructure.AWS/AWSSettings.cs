@@ -1,5 +1,3 @@
-using TechChallenge.Infrastructure.AWS.Cognito.Configuration;
-
 namespace TechChallenge.Infrastructure.AWS;
 
 public class AwsSettings

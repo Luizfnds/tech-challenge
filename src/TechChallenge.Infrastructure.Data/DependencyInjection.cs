@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TechChallenge.Domain.Contracts.Repositories;
+using TechChallenge.Application.Contracts.Repositories;
 using TechChallenge.Infrastructure.Data.Context;
 using TechChallenge.Infrastructure.Data.Repositories;
 

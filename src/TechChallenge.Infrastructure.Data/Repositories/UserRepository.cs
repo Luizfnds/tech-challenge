@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TechChallenge.Domain.Entities;
-using TechChallenge.Domain.Contracts.Repositories;
+using TechChallenge.Application.Contracts.Repositories;
 using TechChallenge.Infrastructure.Data.Context;
 
 namespace TechChallenge.Infrastructure.Data.Repositories;

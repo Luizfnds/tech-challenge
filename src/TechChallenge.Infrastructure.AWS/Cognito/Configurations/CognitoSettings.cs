@@ -1,4 +1,4 @@
-namespace TechChallenge.Infrastructure.AWS.Cognito.Configuration;
+namespace TechChallenge.Infrastructure.AWS.Cognito.Configurations;
 
 public class CognitoSettings
 {

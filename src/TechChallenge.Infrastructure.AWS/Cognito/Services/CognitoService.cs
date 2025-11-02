@@ -1,7 +1,7 @@
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Microsoft.Extensions.Options;
-using TechChallenge.Infrastructure.AWS.Cognito.Configuration;
+using TechChallenge.Infrastructure.AWS.Cognito.Configurations;
 using System.Security.Cryptography;
 using System.Text;
 using TechChallenge.Domain.Entities;

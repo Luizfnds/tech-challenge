@@ -1,7 +1,7 @@
 using MediatR;
 using TechChallenge.Application.Contracts.Auth;
 using TechChallenge.Domain.Entities;
-using TechChallenge.Domain.Contracts.Repositories;
+using TechChallenge.Application.Contracts.Repositories;
 using TechChallenge.Application.Common.Models;
 using TechChallenge.Application.Common.Errors;
 using TechChallenge.Application.Common.Exceptions;

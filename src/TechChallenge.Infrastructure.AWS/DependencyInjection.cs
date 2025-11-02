@@ -3,7 +3,8 @@ using Amazon.CognitoIdentityProvider;
 using Amazon.Runtime;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using TechChallenge.Application.Contracts.Auth;using TechChallenge.Infrastructure.AWS.Cognito.Configuration;
+using TechChallenge.Application.Contracts.Auth;
+using TechChallenge.Infrastructure.AWS.Cognito.Configurations;
 using TechChallenge.Infrastructure.AWS.Cognito.Services;
 
 namespace TechChallenge.Infrastructure.AWS;
