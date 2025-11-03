@@ -41,7 +41,6 @@ public static class DependencyInjection
                 sqlOptions.CommandTimeout(30);
             });
 
-            // Habilitar logs sensíveis apenas em Development
             #if DEBUG
             options.EnableSensitiveDataLogging();
             options.EnableDetailedErrors();
@@ -56,6 +55,7 @@ public static class DependencyInjection
         services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IGameRepository, GameRepository>();
+        services.AddScoped<IPromotionRepository, PromotionRepository>();
 
         return services;
     }

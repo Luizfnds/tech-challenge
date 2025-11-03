@@ -1,8 +1,5 @@
 namespace FCG.Domain.Entities;
 
-/// <summary>
-/// Represents the relationship between a user and a game in their library
-/// </summary>
 public class UserGame : BaseEntity
 {
     public Guid UserId { get; private set; }

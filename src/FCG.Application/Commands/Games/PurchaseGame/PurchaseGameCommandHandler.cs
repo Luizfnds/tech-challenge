@@ -10,13 +10,16 @@ public class PurchaseGameCommandHandler : IRequestHandler<PurchaseGameCommand, R
 {
     private readonly IGameRepository _gameRepository;
     private readonly IUserRepository _userRepository;
+    private readonly IPromotionRepository _promotionRepository;
 
     public PurchaseGameCommandHandler(
         IGameRepository gameRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IPromotionRepository promotionRepository)
     {
         _gameRepository = gameRepository;
         _userRepository = userRepository;
+        _promotionRepository = promotionRepository;
     }
 
     public async Task<Result<Guid>> Handle(PurchaseGameCommand request, CancellationToken cancellationToken)
@@ -36,7 +39,15 @@ public class PurchaseGameCommandHandler : IRequestHandler<PurchaseGameCommand, R
         if (alreadyOwned)
             return Result.Failure<Guid>(DomainErrors.UserGame.AlreadyOwned);
 
-        var userGame = UserGame.Create(request.UserId, request.GameId, game.Price);
+        var finalPrice = game.Price;
+        var promotion = await _promotionRepository.GetByGameIdAsync(request.GameId, cancellationToken);
+        
+        if (promotion != null && promotion.IsValid())
+        {
+            finalPrice = promotion.CalculateDiscountedPrice(game.Price);
+        }
+
+        var userGame = UserGame.Create(request.UserId, request.GameId, finalPrice);
 
         await _gameRepository.AddUserGameAsync(userGame, cancellationToken);
 

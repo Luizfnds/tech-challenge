@@ -10,9 +10,10 @@ public class Game : BaseEntity
     public string Publisher { get; private set; }
     public bool IsActive { get; private set; }
 
-    // Navigation property
     private readonly List<UserGame> _userGames = new();
     public IReadOnlyCollection<UserGame> UserGames => _userGames.AsReadOnly();
+    
+    public Promotion? Promotion { get; private set; }
 
     private Game(
         string title,

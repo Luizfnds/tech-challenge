@@ -5,44 +5,12 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FCG.Application.Commands.Games.CreateGame;
 
-/// <summary>
-/// Command to create a new game
-/// </summary>
 public record CreateGameCommand(
-    /// <summary>
-    /// Game title (3-200 characters)
-    /// </summary>
-    /// <example>Cyberpunk 2077</example>
     string Title,
-    
-    /// <summary>
-    /// Detailed game description (max 2000 characters)
-    /// </summary>
-    /// <example>An open-world action-adventure RPG set in Night City</example>
     string Description,
-    
-    /// <summary>
-    /// Game genre (max 100 characters)
-    /// </summary>
-    /// <example>RPG</example>
     string Genre,
-    
-    /// <summary>
-    /// Game price in USD (must be >= 0)
-    /// </summary>
-    /// <example>59.99</example>
     decimal Price,
-    
-    /// <summary>
-    /// Official release date
-    /// </summary>
-    /// <example>2020-12-10</example>
     DateTime ReleaseDate,
-    
-    /// <summary>
-    /// Publisher name (max 200 characters)
-    /// </summary>
-    /// <example>CD Projekt Red</example>
     string Publisher
 ) : IRequest<Result<Guid>>;
 

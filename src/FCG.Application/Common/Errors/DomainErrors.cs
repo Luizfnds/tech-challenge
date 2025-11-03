@@ -89,6 +89,37 @@ public static class DomainErrors
             "Purchase price must be greater than or equal to zero");
     }
 
+    public static class Promotion
+    {
+        public static Error NotFound(Guid promotionId) => Error.NotFound(
+            "Promotion.NotFound",
+            $"Promotion with ID '{promotionId}' was not found");
+
+        public static Error GameNotFound => Error.NotFound(
+            "Promotion.GameNotFound",
+            "Game not found for this promotion");
+
+        public static Error GameAlreadyHasPromotion => Error.Conflict(
+            "Promotion.GameAlreadyHasPromotion",
+            "This game already has an active promotion");
+
+        public static Error InvalidDiscountPercentage => Error.Validation(
+            "Promotion.InvalidDiscountPercentage",
+            "Discount percentage must be between 0 and 100");
+
+        public static Error InvalidDateRange => Error.Validation(
+            "Promotion.InvalidDateRange",
+            "Start date must be before end date and end date must be in the future");
+
+        public static Error CreationFailed => Error.Failure(
+            "Promotion.CreationFailed",
+            "Failed to create promotion");
+
+        public static Error AlreadyInactive => Error.Validation(
+            "Promotion.AlreadyInactive",
+            "Promotion is already inactive");
+    }
+
     public static class Authentication
     {
         public static Error InvalidCredentials => Error.Unauthorized(

@@ -1,8 +1,5 @@
 namespace FCG.Application.Common.Models;
 
-/// <summary>
-/// Representa um erro no domínio
-/// </summary>
 public sealed class Error : IEquatable<Error>
 {
     public static readonly Error None = new(string.Empty, string.Empty, ErrorType.None);

@@ -83,3 +83,33 @@ public class PurchaseGameResponse
     public Guid UserGameId { get; set; }
     public string Message { get; set; } = string.Empty;
 }
+
+public class PromotionPagedResponse
+{
+    public IEnumerable<PromotionItemResponse> Items { get; set; } = new List<PromotionItemResponse>();
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public int TotalCount { get; set; }
+    public int TotalPages { get; set; }
+    public bool HasPreviousPage { get; set; }
+    public bool HasNextPage { get; set; }
+}
+
+public class PromotionItemResponse
+{
+    public Guid Id { get; set; }
+    public Guid GameId { get; set; }
+    public string GameTitle { get; set; } = string.Empty;
+    public decimal DiscountPercentage { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsValid { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+public class CreatePromotionResponse
+{
+    public Guid PromotionId { get; set; }
+    public string Message { get; set; } = string.Empty;
+}

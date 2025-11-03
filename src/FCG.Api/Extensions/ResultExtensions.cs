@@ -3,9 +3,6 @@ using FCG.Application.Common.Models;
 
 namespace FCG.API.Extensions;
 
-/// <summary>
-/// Extensões para converter Result em IActionResult
-/// </summary>
 public static class ResultExtensions
 {
     public static IActionResult ToActionResult(this Result result)

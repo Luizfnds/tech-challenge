@@ -1,8 +1,5 @@
 namespace FCG.Application.Common.Models;
 
-/// <summary>
-/// Representa o resultado de uma operação que pode ter sucesso ou falha
-/// </summary>
 public class Result
 {
     public bool IsSuccess { get; }
@@ -32,9 +29,6 @@ public class Result
         new(default, false, error);
 }
 
-/// <summary>
-/// Representa o resultado de uma operação que retorna um valor
-/// </summary>
 public class Result<TValue> : Result
 {
     private readonly TValue? _value;

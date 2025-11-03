@@ -1,0 +1,33 @@
+using MediatR;
+using FCG.Application.Contracts.Repositories;
+using FCG.Application.Common.Models;
+using FCG.Application.Common.Errors;
+
+namespace FCG.Application.Commands.Promotions.DeactivatePromotion;
+
+public class DeactivatePromotionCommandHandler : IRequestHandler<DeactivatePromotionCommand, Result>
+{
+    private readonly IPromotionRepository _promotionRepository;
+
+    public DeactivatePromotionCommandHandler(IPromotionRepository promotionRepository)
+    {
+        _promotionRepository = promotionRepository;
+    }
+
+    public async Task<Result> Handle(DeactivatePromotionCommand request, CancellationToken cancellationToken)
+    {
+        var promotion = await _promotionRepository.GetByIdAsync(request.PromotionId, cancellationToken);
+        
+        if (promotion is null)
+            return Result.Failure(DomainErrors.Promotion.NotFound(request.PromotionId));
+
+        if (!promotion.IsActive)
+            return Result.Failure(DomainErrors.Promotion.AlreadyInactive);
+
+        promotion.Deactivate();
+
+        await _promotionRepository.UpdateAsync(promotion, cancellationToken);
+
+        return Result.Success();
+    }
+}
