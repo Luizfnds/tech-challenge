@@ -125,7 +125,7 @@ public class PromotionsController : ControllerBase
             response);
     }
 
-    [HttpPost("{id:guid}/deactivate")]
+    [HttpPatch("{id:guid}/deactivate")]
     [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]

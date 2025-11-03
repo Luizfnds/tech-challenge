@@ -23,7 +23,7 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
     private readonly IMediator _mediator = mediator;
     private readonly ILogger<AccountsController> _logger = logger;
 
-    [HttpGet("by-email/{email}")]
+    [HttpGet("{email}")]
     [Authorize(Policy = "UserOrAdmin")]
     [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
@@ -138,37 +138,23 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
         return Ok(new { message = "Password changed successfully." });
     }
 
-    [HttpPost("enable-user")]
+    [HttpPatch("{email}/status")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> EnableUser([FromBody] EnableUserCommand command)
+    public async Task<IActionResult> UpdateUserStatus(string email, [FromQuery] bool enabled)
     {
-        var result = await _mediator.Send(command);
+        var result = enabled
+            ? await _mediator.Send(new EnableUserCommand(email))
+            : await _mediator.Send(new DisableUserCommand(email));
 
         if (result.IsFailure)
             return result.ToActionResult();
 
-        return Ok(new { message = "User enabled successfully." });
-    }
-
-    [HttpPost("disable-user")]
-    [Authorize(Policy = "AdminOnly")]
-    [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DisableUser([FromBody] DisableUserCommand command)
-    {
-        var result = await _mediator.Send(command);
-
-        if (result.IsFailure)
-            return result.ToActionResult();
-
-        return Ok(new { message = "User disabled successfully." });
+        var message = enabled ? "User enabled successfully." : "User disabled successfully.";
+        return Ok(new { message });
     }
 }

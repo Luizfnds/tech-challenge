@@ -10,6 +10,11 @@ public static class DependencyInjection
     {
         services.AddControllers();
 
+        services.Configure<RouteOptions>(options =>
+        {
+            options.LowercaseUrls = true;
+        });
+
         services.AddAuthenticationAndAuthorization(configuration);
 
         services.AddSwaggerConfiguration();

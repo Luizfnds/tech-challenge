@@ -23,25 +23,24 @@ public class GamesController(IMediator mediator) : ControllerBase
     private readonly IMediator _mediator = mediator;
 
     [HttpGet]
-    [Authorize(Policy = "AdminOnly")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(GamePagedResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetGames(
+        [FromQuery] bool active = true, 
+        [FromQuery] int pageNumber = 1, 
+        [FromQuery] int pageSize = 10)
     {
-        var query = new GetAllGamesQuery(pageNumber, pageSize);
-        var result = await _mediator.Send(query);
+        // Se active for false, requer privilégio de admin
+        if (!active && !User.IsInRole("Admin"))
+        {
+            return Forbid();
+        }
 
-        return result.ToActionResult();
-    }
-
-    [HttpGet("active")]
-    [AllowAnonymous]
-    [ProducesResponseType(typeof(GamePagedResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetActiveGames([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
-    {
-        var query = new GetActiveGamesQuery(pageNumber, pageSize);
-        var result = await _mediator.Send(query);
+        var result = active
+            ? await _mediator.Send(new GetActiveGamesQuery(pageNumber, pageSize))
+            : await _mediator.Send(new GetAllGamesQuery(pageNumber, pageSize));
 
         return result.ToActionResult();
     }
@@ -77,38 +76,23 @@ public class GamesController(IMediator mediator) : ControllerBase
             new { gameId = result.Value, message = "Game created successfully." });
     }
 
-    [HttpPost("{id:guid}/activate")]
+    [HttpPatch("{id:guid}/status")]
     [Authorize(Policy = "AdminOnly")]
     [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Activate(Guid id)
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromQuery] bool active)
     {
-        var command = new ActivateGameCommand(id);
-        var result = await _mediator.Send(command);
+        var result = active
+            ? await _mediator.Send(new ActivateGameCommand(id))
+            : await _mediator.Send(new DeactivateGameCommand(id));
 
         if (result.IsFailure)
             return result.ToActionResult();
 
-        return Ok(new { message = "Game activated successfully." });
-    }
-
-    [HttpPost("{id:guid}/deactivate")]
-    [Authorize(Policy = "AdminOnly")]
-    [ProducesResponseType(typeof(MessageResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Deactivate(Guid id)
-    {
-        var command = new DeactivateGameCommand(id);
-        var result = await _mediator.Send(command);
-
-        if (result.IsFailure)
-            return result.ToActionResult();
-
-        return Ok(new { message = "Game deactivated successfully." });
+        var message = active ? "Game activated successfully." : "Game deactivated successfully.";
+        return Ok(new { message });
     }
 
     [HttpPatch("{id:guid}")]
