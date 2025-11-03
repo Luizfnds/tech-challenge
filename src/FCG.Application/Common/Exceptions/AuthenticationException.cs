@@ -1,8 +1,5 @@
 namespace FCG.Application.Common.Exceptions;
 
-/// <summary>
-/// Base exception for authentication-related errors
-/// </summary>
 public abstract class AuthenticationException : Exception
 {
     protected AuthenticationException(string message) : base(message)
@@ -15,9 +12,6 @@ public abstract class AuthenticationException : Exception
     }
 }
 
-/// <summary>
-/// Exception thrown when user credentials are invalid
-/// </summary>
 public class InvalidCredentialsException : AuthenticationException
 {
     public InvalidCredentialsException()
@@ -31,9 +25,6 @@ public class InvalidCredentialsException : AuthenticationException
     }
 }
 
-/// <summary>
-/// Exception thrown when email is not confirmed
-/// </summary>
 public class EmailNotConfirmedException : AuthenticationException
 {
     public EmailNotConfirmedException()
@@ -47,9 +38,6 @@ public class EmailNotConfirmedException : AuthenticationException
     }
 }
 
-/// <summary>
-/// Exception thrown when user is not found
-/// </summary>
 public class UserNotFoundException : AuthenticationException
 {
     public UserNotFoundException()
@@ -68,9 +56,6 @@ public class UserNotFoundException : AuthenticationException
     }
 }
 
-/// <summary>
-/// Exception thrown when user account is disabled
-/// </summary>
 public class UserDisabledException : AuthenticationException
 {
     public UserDisabledException()
@@ -84,9 +69,6 @@ public class UserDisabledException : AuthenticationException
     }
 }
 
-/// <summary>
-/// Exception thrown when confirmation code is invalid
-/// </summary>
 public class InvalidConfirmationCodeException : AuthenticationException
 {
     public InvalidConfirmationCodeException()
@@ -100,9 +82,6 @@ public class InvalidConfirmationCodeException : AuthenticationException
     }
 }
 
-/// <summary>
-/// Exception thrown when password is invalid or doesn't meet requirements
-/// </summary>
 public class InvalidPasswordException : AuthenticationException
 {
     public InvalidPasswordException(string message)
@@ -116,9 +95,6 @@ public class InvalidPasswordException : AuthenticationException
     }
 }
 
-/// <summary>
-/// Exception thrown when user already exists
-/// </summary>
 public class UserAlreadyExistsException : AuthenticationException
 {
     public UserAlreadyExistsException(string email)
@@ -132,9 +108,6 @@ public class UserAlreadyExistsException : AuthenticationException
     }
 }
 
-/// <summary>
-/// Exception thrown when token is invalid or expired
-/// </summary>
 public class InvalidTokenException : AuthenticationException
 {
     public InvalidTokenException()
@@ -148,9 +121,6 @@ public class InvalidTokenException : AuthenticationException
     }
 }
 
-/// <summary>
-/// Exception thrown when password reset operation fails
-/// </summary>
 public class PasswordResetFailedException : AuthenticationException
 {
     public PasswordResetFailedException(string message)
@@ -164,9 +134,6 @@ public class PasswordResetFailedException : AuthenticationException
     }
 }
 
-/// <summary>
-/// Exception thrown when limit is exceeded (e.g., too many attempts)
-/// </summary>
 public class LimitExceededException : AuthenticationException
 {
     public LimitExceededException(string message)

@@ -92,7 +92,7 @@ public static class DependencyInjection
             {
                 Title = "FCG API",
                 Version = "v1",
-                Description = "API para gerenciamento de usuários com autenticação AWS Cognito",
+                Description = "API para gerenciamento de jogos e usuários com autenticação AWS Cognito",
             });
 
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

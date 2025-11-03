@@ -2,9 +2,6 @@ using FCG.Application.Common.Models;
 
 namespace FCG.Application.Common.Errors;
 
-/// <summary>
-/// Catálogo centralizado de erros do domínio
-/// </summary>
 public static class DomainErrors
 {
     public static class User
@@ -28,6 +25,41 @@ public static class DomainErrors
         public static Error CreationFailed => Error.Failure(
             "User.CreationFailed",
             "Failed to create user");
+    }
+
+    public static class Game
+    {
+        public static Error NotFound(Guid gameId) => Error.NotFound(
+            "Game.NotFound",
+            $"Game with ID '{gameId}' was not found");
+
+        public static Error InvalidTitle => Error.Validation(
+            "Game.InvalidTitle",
+            "Game title must be between 3 and 200 characters");
+
+        public static Error InvalidPrice => Error.Validation(
+            "Game.InvalidPrice",
+            "Game price must be greater than or equal to zero");
+
+        public static Error CreationFailed => Error.Failure(
+            "Game.CreationFailed",
+            "Failed to create game");
+
+        public static Error UpdateFailed => Error.Failure(
+            "Game.UpdateFailed",
+            "Failed to update game");
+
+        public static Error DeleteFailed => Error.Failure(
+            "Game.DeleteFailed",
+            "Failed to delete game");
+
+        public static Error AlreadyInactive => Error.Validation(
+            "Game.AlreadyInactive",
+            "Game is already inactive");
+
+        public static Error AlreadyActive => Error.Validation(
+            "Game.AlreadyActive",
+            "Game is already active");
     }
 
     public static class Authentication
