@@ -6,14 +6,9 @@ using FCG.Domain.Entities;
 
 namespace FCG.Application.Queries.Promotions.GetPromotionById;
 
-public class GetPromotionByIdQueryHandler : IRequestHandler<GetPromotionByIdQuery, Result<Promotion>>
+public class GetPromotionByIdQueryHandler(IPromotionRepository promotionRepository) : IRequestHandler<GetPromotionByIdQuery, Result<Promotion>>
 {
-    private readonly IPromotionRepository _promotionRepository;
-
-    public GetPromotionByIdQueryHandler(IPromotionRepository promotionRepository)
-    {
-        _promotionRepository = promotionRepository;
-    }
+    private readonly IPromotionRepository _promotionRepository = promotionRepository;
 
     public async Task<Result<Promotion>> Handle(GetPromotionByIdQuery request, CancellationToken cancellationToken)
     {

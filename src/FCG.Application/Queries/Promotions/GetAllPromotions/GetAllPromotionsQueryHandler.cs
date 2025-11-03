@@ -5,14 +5,9 @@ using FCG.Domain.Entities;
 
 namespace FCG.Application.Queries.Promotions.GetAllPromotions;
 
-public class GetAllPromotionsQueryHandler : IRequestHandler<GetAllPromotionsQuery, Result<PagedResult<Promotion>>>
+public class GetAllPromotionsQueryHandler(IPromotionRepository promotionRepository) : IRequestHandler<GetAllPromotionsQuery, Result<PagedResult<Promotion>>>
 {
-    private readonly IPromotionRepository _promotionRepository;
-
-    public GetAllPromotionsQueryHandler(IPromotionRepository promotionRepository)
-    {
-        _promotionRepository = promotionRepository;
-    }
+    private readonly IPromotionRepository _promotionRepository = promotionRepository;
 
     public async Task<Result<PagedResult<Promotion>>> Handle(GetAllPromotionsQuery request, CancellationToken cancellationToken)
     {

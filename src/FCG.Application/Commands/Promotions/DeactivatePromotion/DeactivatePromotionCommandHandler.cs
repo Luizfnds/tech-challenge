@@ -5,14 +5,9 @@ using FCG.Application.Common.Errors;
 
 namespace FCG.Application.Commands.Promotions.DeactivatePromotion;
 
-public class DeactivatePromotionCommandHandler : IRequestHandler<DeactivatePromotionCommand, Result>
+public class DeactivatePromotionCommandHandler(IPromotionRepository promotionRepository) : IRequestHandler<DeactivatePromotionCommand, Result>
 {
-    private readonly IPromotionRepository _promotionRepository;
-
-    public DeactivatePromotionCommandHandler(IPromotionRepository promotionRepository)
-    {
-        _promotionRepository = promotionRepository;
-    }
+    private readonly IPromotionRepository _promotionRepository = promotionRepository;
 
     public async Task<Result> Handle(DeactivatePromotionCommand request, CancellationToken cancellationToken)
     {

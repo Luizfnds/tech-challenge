@@ -9,7 +9,6 @@ using FCG.Application.Contracts.Auth;
 using FCG.Application.Contracts.Auth.Responses;
 using FCG.Application.Common.Exceptions;
 using CognitoInvalidPasswordException = Amazon.CognitoIdentityProvider.Model.InvalidPasswordException;
-using FCG.Domain.Enumerations;
 
 namespace FCG.Infrastructure.AWS.Cognito.Services;
 

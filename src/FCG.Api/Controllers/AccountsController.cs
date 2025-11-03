@@ -11,17 +11,16 @@ using FCG.Application.Commands.Auth.ChangePassword;
 using FCG.Application.Commands.Auth.EnableUser;
 using FCG.Application.Commands.Auth.DisableUser;
 using FCG.API.Extensions;
-using FCG.API.DTOs;
+using FCG.API.Contracts.Responses;
 using FCG.Application.Queries.Users.GetUserByEmail;
 
 namespace FCG.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AccountsController(IMediator mediator, ILogger<AccountsController> logger) : ControllerBase
+public class AccountsController(IMediator mediator) : ControllerBase
 {
     private readonly IMediator _mediator = mediator;
-    private readonly ILogger<AccountsController> _logger = logger;
 
     [HttpGet("{email}")]
     [Authorize(Policy = "UserOrAdmin")]

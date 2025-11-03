@@ -6,12 +6,8 @@ using FCG.Application.Common.Models;
 
 namespace FCG.Infrastructure.Data.Repositories;
 
-public class PromotionRepository : BaseRepository<Promotion>, IPromotionRepository
+public class PromotionRepository(ApplicationDbContext context) : BaseRepository<Promotion>(context), IPromotionRepository
 {
-    public PromotionRepository(ApplicationDbContext context) : base(context)
-    {
-    }
-
     public async Task<Promotion?> GetByGameIdAsync(Guid gameId, CancellationToken cancellationToken = default)
     {
         return await _context.Promotions

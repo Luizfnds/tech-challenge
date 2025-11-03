@@ -6,18 +6,12 @@ using FCG.Application.Common.Errors;
 
 namespace FCG.Application.Commands.Promotions.CreatePromotion;
 
-public class CreatePromotionCommandHandler : IRequestHandler<CreatePromotionCommand, Result<Guid>>
+public class CreatePromotionCommandHandler(
+    IPromotionRepository promotionRepository,
+    IGameRepository gameRepository) : IRequestHandler<CreatePromotionCommand, Result<Guid>>
 {
-    private readonly IPromotionRepository _promotionRepository;
-    private readonly IGameRepository _gameRepository;
-
-    public CreatePromotionCommandHandler(
-        IPromotionRepository promotionRepository,
-        IGameRepository gameRepository)
-    {
-        _promotionRepository = promotionRepository;
-        _gameRepository = gameRepository;
-    }
+    private readonly IPromotionRepository _promotionRepository = promotionRepository;
+    private readonly IGameRepository _gameRepository = gameRepository;
 
     public async Task<Result<Guid>> Handle(CreatePromotionCommand request, CancellationToken cancellationToken)
     {

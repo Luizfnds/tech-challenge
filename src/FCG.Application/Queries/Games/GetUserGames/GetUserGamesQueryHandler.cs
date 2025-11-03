@@ -6,18 +6,12 @@ using MediatR;
 
 namespace FCG.Application.Queries.Games.GetUserGames;
 
-public class GetUserGamesQueryHandler : IRequestHandler<GetUserGamesQuery, Result<PagedResult<UserGame>>>
+public class GetUserGamesQueryHandler(
+    IGameRepository gameRepository,
+    IUserRepository userRepository) : IRequestHandler<GetUserGamesQuery, Result<PagedResult<UserGame>>>
 {
-    private readonly IGameRepository _gameRepository;
-    private readonly IUserRepository _userRepository;
-
-    public GetUserGamesQueryHandler(
-        IGameRepository gameRepository,
-        IUserRepository userRepository)
-    {
-        _gameRepository = gameRepository;
-        _userRepository = userRepository;
-    }
+    private readonly IGameRepository _gameRepository = gameRepository;
+    private readonly IUserRepository _userRepository = userRepository;
 
     public async Task<Result<PagedResult<UserGame>>> Handle(GetUserGamesQuery request, CancellationToken cancellationToken)
     {

@@ -8,21 +8,14 @@ using Microsoft.Extensions.Options;
 
 namespace FCG.Infrastructure.AWS.Seed;
 
-public class CognitoSeeder
+public class CognitoSeeder(
+    IAmazonCognitoIdentityProvider cognitoClient,
+    IOptions<CognitoSettings> settings,
+    ILogger<CognitoSeeder> logger)
 {
-    private readonly IAmazonCognitoIdentityProvider _cognitoClient;
-    private readonly CognitoSettings _settings;
-    private readonly ILogger<CognitoSeeder> _logger;
-
-    public CognitoSeeder(
-        IAmazonCognitoIdentityProvider cognitoClient,
-        IOptions<CognitoSettings> settings,
-        ILogger<CognitoSeeder> logger)
-    {
-        _cognitoClient = cognitoClient;
-        _settings = settings.Value;
-        _logger = logger;
-    }
+    private readonly IAmazonCognitoIdentityProvider _cognitoClient = cognitoClient;
+    private readonly CognitoSettings _settings = settings.Value;
+    private readonly ILogger<CognitoSeeder> _logger = logger;
 
     public async Task<string> SeedAdminAsync(User adminUser, string adminPassword, CancellationToken cancellationToken = default)
     {

@@ -5,16 +5,10 @@ using Microsoft.Extensions.Logging;
 
 namespace FCG.Infrastructure.Data.Seed;
 
-public class DatabaseSeeder
+public class DatabaseSeeder(ApplicationDbContext context, ILogger<DatabaseSeeder> logger)
 {
-    private readonly ApplicationDbContext _context;
-    private readonly ILogger<DatabaseSeeder> _logger;
-
-    public DatabaseSeeder(ApplicationDbContext context, ILogger<DatabaseSeeder> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
+    private readonly ApplicationDbContext _context = context;
+    private readonly ILogger<DatabaseSeeder> _logger = logger;
 
     public async Task SeedAdminAsync(User adminUser, CancellationToken cancellationToken = default)
     {

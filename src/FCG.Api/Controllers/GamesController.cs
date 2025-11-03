@@ -9,7 +9,8 @@ using FCG.Application.Queries.Games.GetAllGames;
 using FCG.Application.Queries.Games.GetGameById;
 using FCG.Application.Queries.Games.GetActiveGames;
 using FCG.API.Extensions;
-using FCG.API.DTOs;
+using FCG.API.Contracts.Responses;
+using FCG.API.Contracts.Requests;
 using FCG.Domain.Entities;
 using FCG.Application.Commands.Games.PurchaseGame;
 using FCG.Application.Queries.Games.GetUserGames;
@@ -102,7 +103,7 @@ public class GamesController(IMediator mediator) : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateGameDto dto)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateGameRequest dto)
     {
         var command = new UpdateGameCommand(
             id,
@@ -142,26 +143,26 @@ public class GamesController(IMediator mediator) : ControllerBase
 
         var pagedResult = result.Value;
 
-        var response = new UserGamePagedResponse
-        {
-            Items = pagedResult.Items.Select(ug => new UserGameItemResponse
-            {
-                Id = ug.Id,
-                GameId = ug.GameId,
-                GameTitle = ug.Game.Title,
-                GameDescription = ug.Game.Description,
-                GameGenre = ug.Game.Genre,
-                GamePublisher = ug.Game.Publisher,
-                PurchaseDate = ug.PurchaseDate,
-                PurchasePrice = ug.PurchasePrice
-            }),
-            PageNumber = pagedResult.PageNumber,
-            PageSize = pagedResult.PageSize,
-            TotalCount = pagedResult.TotalCount,
-            TotalPages = pagedResult.TotalPages,
-            HasPreviousPage = pagedResult.HasPreviousPage,
-            HasNextPage = pagedResult.HasNextPage
-        };
+        var items = pagedResult.Items.Select(ug => new UserGameItemResponse(
+            ug.Id,
+            ug.GameId,
+            ug.Game.Title,
+            ug.Game.Description,
+            ug.Game.Genre,
+            ug.Game.Publisher,
+            ug.PurchaseDate,
+            ug.PurchasePrice
+        ));
+
+        var response = new UserGamePagedResponse(
+            items,
+            pagedResult.PageNumber,
+            pagedResult.PageSize,
+            pagedResult.TotalCount,
+            pagedResult.TotalPages,
+            pagedResult.HasPreviousPage,
+            pagedResult.HasNextPage
+        );
 
         return Ok(response);
     }
@@ -182,20 +183,14 @@ public class GamesController(IMediator mediator) : ControllerBase
         if (result.IsFailure)
             return result.ToActionResult();
 
-        var response = new PurchaseGameResponse
-        {
-            UserGameId = result.Value,
-            Message = "Game successfully added to your library"
-        };
+        var response = new PurchaseGameResponse(
+            result.Value,
+            "Game successfully added to your library"
+        );
 
         return CreatedAtAction(
             nameof(GetUserGames),
             new { userId },
             response);
     }
-}
-
-public record PurchaseGameRequest
-{
-    public Guid GameId { get; init; }
 }

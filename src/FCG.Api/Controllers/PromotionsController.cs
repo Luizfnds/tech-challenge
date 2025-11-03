@@ -6,23 +6,16 @@ using FCG.Application.Commands.Promotions.DeactivatePromotion;
 using FCG.Application.Queries.Promotions.GetAllPromotions;
 using FCG.Application.Queries.Promotions.GetPromotionById;
 using FCG.API.Extensions;
-using FCG.API.DTOs;
+using FCG.API.Contracts.Responses;
 
 namespace FCG.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Policy = "AdminOnly")]
-public class PromotionsController : ControllerBase
+public class PromotionsController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly ILogger<PromotionsController> _logger;
-
-    public PromotionsController(IMediator mediator, ILogger<PromotionsController> logger)
-    {
-        _mediator = mediator;
-        _logger = logger;
-    }
+    private readonly IMediator _mediator = mediator;
 
     [HttpGet]
     [ProducesResponseType(typeof(PromotionPagedResponse), StatusCodes.Status200OK)]
@@ -43,27 +36,27 @@ public class PromotionsController : ControllerBase
 
         var pagedResult = result.Value;
 
-        var response = new PromotionPagedResponse
-        {
-            Items = pagedResult.Items.Select(p => new PromotionItemResponse
-            {
-                Id = p.Id,
-                GameId = p.GameId,
-                GameTitle = p.Game.Title,
-                DiscountPercentage = p.DiscountPercentage,
-                StartDate = p.StartDate,
-                EndDate = p.EndDate,
-                IsActive = p.IsActive,
-                IsValid = p.IsValid(),
-                CreatedAt = p.CreatedAt
-            }),
-            PageNumber = pagedResult.PageNumber,
-            PageSize = pagedResult.PageSize,
-            TotalCount = pagedResult.TotalCount,
-            TotalPages = pagedResult.TotalPages,
-            HasPreviousPage = pagedResult.HasPreviousPage,
-            HasNextPage = pagedResult.HasNextPage
-        };
+        var items = pagedResult.Items.Select(p => new PromotionItemResponse(
+            p.Id,
+            p.GameId,
+            p.Game.Title,
+            p.DiscountPercentage,
+            p.StartDate,
+            p.EndDate,
+            p.IsActive,
+            p.IsValid(),
+            p.CreatedAt
+        ));
+
+        var response = new PromotionPagedResponse(
+            items,
+            pagedResult.PageNumber,
+            pagedResult.PageSize,
+            pagedResult.TotalCount,
+            pagedResult.TotalPages,
+            pagedResult.HasPreviousPage,
+            pagedResult.HasNextPage
+        );
 
         return Ok(response);
     }
@@ -83,18 +76,17 @@ public class PromotionsController : ControllerBase
 
         var promotion = result.Value;
 
-        var response = new PromotionItemResponse
-        {
-            Id = promotion.Id,
-            GameId = promotion.GameId,
-            GameTitle = promotion.Game.Title,
-            DiscountPercentage = promotion.DiscountPercentage,
-            StartDate = promotion.StartDate,
-            EndDate = promotion.EndDate,
-            IsActive = promotion.IsActive,
-            IsValid = promotion.IsValid(),
-            CreatedAt = promotion.CreatedAt
-        };
+        var response = new PromotionItemResponse(
+            promotion.Id,
+            promotion.GameId,
+            promotion.Game.Title,
+            promotion.DiscountPercentage,
+            promotion.StartDate,
+            promotion.EndDate,
+            promotion.IsActive,
+            promotion.IsValid(),
+            promotion.CreatedAt
+        );
 
         return Ok(response);
     }
@@ -113,11 +105,10 @@ public class PromotionsController : ControllerBase
         if (result.IsFailure)
             return result.ToActionResult();
 
-        var response = new CreatePromotionResponse
-        {
-            PromotionId = result.Value,
-            Message = "Promotion created successfully."
-        };
+        var response = new CreatePromotionResponse(
+            result.Value,
+            "Promotion created successfully."
+        );
 
         return CreatedAtAction(
             nameof(GetById),
@@ -139,6 +130,6 @@ public class PromotionsController : ControllerBase
         if (result.IsFailure)
             return result.ToActionResult();
 
-        return Ok(new MessageResponse { Message = "Promotion deactivated successfully." });
+        return Ok(new MessageResponse("Promotion deactivated successfully."));
     }
 }

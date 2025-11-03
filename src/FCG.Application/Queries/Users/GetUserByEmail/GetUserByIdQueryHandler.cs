@@ -6,14 +6,9 @@ using FCG.Application.Common.Errors;
 
 namespace FCG.Application.Queries.Users.GetUserByEmail;
 
-public class GetUserByEmailQueryHandler : IRequestHandler<GetUserByEmailQuery, Result<User>>
+public class GetUserByEmailQueryHandler(IUserRepository userRepository) : IRequestHandler<GetUserByEmailQuery, Result<User>>
 {
-    private readonly IUserRepository _userRepository;
-
-    public GetUserByEmailQueryHandler(IUserRepository userRepository)
-    {
-        _userRepository = userRepository;
-    }
+    private readonly IUserRepository _userRepository = userRepository;
 
     public async Task<Result<User>> Handle(GetUserByEmailQuery request, CancellationToken cancellationToken)
     {

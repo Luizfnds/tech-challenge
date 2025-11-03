@@ -7,7 +7,6 @@ public class UserGame : BaseEntity
     public DateTime PurchaseDate { get; private set; }
     public decimal PurchasePrice { get; private set; }
 
-    // Navigation properties
     public User User { get; private set; } = null!;
     public Game Game { get; private set; } = null!;
 

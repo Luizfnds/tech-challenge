@@ -6,21 +6,14 @@ using MediatR;
 
 namespace FCG.Application.Commands.Games.PurchaseGame;
 
-public class PurchaseGameCommandHandler : IRequestHandler<PurchaseGameCommand, Result<Guid>>
+public class PurchaseGameCommandHandler(
+    IGameRepository gameRepository,
+    IUserRepository userRepository,
+    IPromotionRepository promotionRepository) : IRequestHandler<PurchaseGameCommand, Result<Guid>>
 {
-    private readonly IGameRepository _gameRepository;
-    private readonly IUserRepository _userRepository;
-    private readonly IPromotionRepository _promotionRepository;
-
-    public PurchaseGameCommandHandler(
-        IGameRepository gameRepository,
-        IUserRepository userRepository,
-        IPromotionRepository promotionRepository)
-    {
-        _gameRepository = gameRepository;
-        _userRepository = userRepository;
-        _promotionRepository = promotionRepository;
-    }
+    private readonly IGameRepository _gameRepository = gameRepository;
+    private readonly IUserRepository _userRepository = userRepository;
+    private readonly IPromotionRepository _promotionRepository = promotionRepository;
 
     public async Task<Result<Guid>> Handle(PurchaseGameCommand request, CancellationToken cancellationToken)
     {

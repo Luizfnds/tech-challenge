@@ -1,6 +1,6 @@
-namespace FCG.API.DTOs;
+namespace FCG.API.Contracts.Requests;
 
-public record UpdateGameDto(
+public record UpdateGameRequest(
     string Title,
     string Description,
     string Genre,
