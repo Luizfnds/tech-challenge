@@ -12,6 +12,7 @@ using FCG.Application.Commands.Auth.EnableUser;
 using FCG.Application.Commands.Auth.DisableUser;
 using FCG.API.Extensions;
 using FCG.API.DTOs;
+using FCG.Application.Queries.Users.GetUserByEmail;
 
 namespace FCG.API.Controllers;
 
@@ -21,6 +22,19 @@ public class AccountsController(IMediator mediator, ILogger<AccountsController> 
 {
     private readonly IMediator _mediator = mediator;
     private readonly ILogger<AccountsController> _logger = logger;
+
+    [HttpGet("by-email/{email}")]
+    [Authorize(Policy = "UserOrAdmin")]
+    [ProducesResponseType(typeof(UserResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetByEmail(string email)
+    {
+        var query = new GetUserByEmailQuery(email);
+        var result = await _mediator.Send(query);
+        
+        return result.ToActionResult();
+    }
 
     [HttpPost("signup")]
     [AllowAnonymous]

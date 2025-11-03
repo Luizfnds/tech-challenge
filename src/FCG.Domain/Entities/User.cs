@@ -9,6 +9,10 @@ public class User : BaseEntity
     public Role Role { get; private set; }
     public string? AccountId { get; private set; }
 
+    // Navigation property
+    private readonly List<UserGame> _userGames = new();
+    public IReadOnlyCollection<UserGame> UserGames => _userGames.AsReadOnly();
+
     private User(string name, string email, Role role)
     {
         Name = name;

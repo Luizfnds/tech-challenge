@@ -54,3 +54,32 @@ public class UserResponse
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }
+
+public class UserGamePagedResponse
+{
+    public IEnumerable<UserGameItemResponse> Items { get; set; } = new List<UserGameItemResponse>();
+    public int PageNumber { get; set; }
+    public int PageSize { get; set; }
+    public int TotalCount { get; set; }
+    public int TotalPages { get; set; }
+    public bool HasPreviousPage { get; set; }
+    public bool HasNextPage { get; set; }
+}
+
+public class UserGameItemResponse
+{
+    public Guid Id { get; set; }
+    public Guid GameId { get; set; }
+    public string GameTitle { get; set; } = string.Empty;
+    public string GameDescription { get; set; } = string.Empty;
+    public string GameGenre { get; set; } = string.Empty;
+    public string GamePublisher { get; set; } = string.Empty;
+    public DateTime PurchaseDate { get; set; }
+    public decimal PurchasePrice { get; set; }
+}
+
+public class PurchaseGameResponse
+{
+    public Guid UserGameId { get; set; }
+    public string Message { get; set; } = string.Empty;
+}

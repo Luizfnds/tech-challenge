@@ -2,9 +2,8 @@ using FCG.Domain.Entities;
 
 namespace FCG.Application.Contracts.Repositories;
 
-public interface IUserRepository
+public interface IUserRepository : IBaseRepository<User>
 {
-    Task<bool> EmailExistsAsync(string email);
-    Task<User?> GetByIdAsync(Guid id);
-    Task AddAsync(User user);
+    Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default);
+    Task<User?> GetByEmailAsync(string email,  CancellationToken cancellationToken = default);
 }

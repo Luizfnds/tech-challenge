@@ -11,6 +11,8 @@ using FCG.Application.Queries.Games.GetActiveGames;
 using FCG.API.Extensions;
 using FCG.API.DTOs;
 using FCG.Domain.Entities;
+using FCG.Application.Commands.Games.PurchaseGame;
+using FCG.Application.Queries.Games.GetUserGames;
 
 namespace FCG.API.Controllers;
 
@@ -135,4 +137,81 @@ public class GamesController(IMediator mediator) : ControllerBase
 
         return Ok(new { message = "Game updated successfully." });
     }
+
+    [HttpGet("user/{userId:guid}")]
+    [ProducesResponseType(typeof(UserGamePagedResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetUserGames(
+        [FromRoute] Guid userId,
+        [FromQuery] int pageNumber = 1,
+        [FromQuery] int pageSize = 10)
+    {
+        if (pageSize > 100) pageSize = 100;
+        if (pageNumber < 1) pageNumber = 1;
+
+        var query = new GetUserGamesQuery(userId, pageNumber, pageSize);
+        var result = await _mediator.Send(query);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        var pagedResult = result.Value;
+
+        var response = new UserGamePagedResponse
+        {
+            Items = pagedResult.Items.Select(ug => new UserGameItemResponse
+            {
+                Id = ug.Id,
+                GameId = ug.GameId,
+                GameTitle = ug.Game.Title,
+                GameDescription = ug.Game.Description,
+                GameGenre = ug.Game.Genre,
+                GamePublisher = ug.Game.Publisher,
+                PurchaseDate = ug.PurchaseDate,
+                PurchasePrice = ug.PurchasePrice
+            }),
+            PageNumber = pagedResult.PageNumber,
+            PageSize = pagedResult.PageSize,
+            TotalCount = pagedResult.TotalCount,
+            TotalPages = pagedResult.TotalPages,
+            HasPreviousPage = pagedResult.HasPreviousPage,
+            HasNextPage = pagedResult.HasNextPage
+        };
+
+        return Ok(response);
+    }
+
+    [HttpPost("user/{userId:guid}/purchase")]
+    [ProducesResponseType(typeof(PurchaseGameResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> PurchaseGame(
+        [FromRoute] Guid userId,
+        [FromBody] PurchaseGameRequest request)
+    {
+        var command = new PurchaseGameCommand(userId, request.GameId);
+        var result = await _mediator.Send(command);
+
+        if (result.IsFailure)
+            return result.ToActionResult();
+
+        var response = new PurchaseGameResponse
+        {
+            UserGameId = result.Value,
+            Message = "Game successfully added to your library"
+        };
+
+        return CreatedAtAction(
+            nameof(GetUserGames),
+            new { userId },
+            response);
+    }
+}
+
+public record PurchaseGameRequest
+{
+    public Guid GameId { get; init; }
 }

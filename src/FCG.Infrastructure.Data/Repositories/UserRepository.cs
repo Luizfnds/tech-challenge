@@ -7,18 +7,13 @@ namespace FCG.Infrastructure.Data.Repositories;
 
 public class UserRepository(ApplicationDbContext context) : BaseRepository<User>(context), IUserRepository
 {
-    public async Task<bool> EmailExistsAsync(string email)
+    public async Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await _context.Users.AnyAsync(u => u.Email == email);
+        return await _context.Users.AnyAsync(u => u.Email == email, cancellationToken);
     }
 
-    public async Task<User?> GetByIdAsync(Guid id)
+    public async Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await base.GetByIdAsync(id);
-    }
-
-    public async Task AddAsync(User user)
-    {
-        await base.AddAsync(user);
+        return await _context.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 }

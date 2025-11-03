@@ -10,6 +10,10 @@ public static class DomainErrors
             "User.NotFound",
             $"User with ID '{userId}' was not found");
 
+        public static Error NotFound(string email) => Error.NotFound(
+            "User.NotFound",
+            $"User with email '{email}' was not found");
+
         public static Error EmailAlreadyExists(string email) => Error.Conflict(
             "User.EmailAlreadyExists",
             $"User with email '{email}' already exists");
@@ -60,6 +64,29 @@ public static class DomainErrors
         public static Error AlreadyActive => Error.Validation(
             "Game.AlreadyActive",
             "Game is already active");
+    }
+
+    public static class UserGame
+    {
+        public static Error NotFound(Guid userGameId) => Error.NotFound(
+            "UserGame.NotFound",
+            $"User game with ID '{userGameId}' was not found");
+
+        public static Error GameNotActive => Error.Validation(
+            "UserGame.GameNotActive",
+            "Game is not active and cannot be purchased");
+
+        public static Error AlreadyOwned => Error.Conflict(
+            "UserGame.AlreadyOwned",
+            "User already owns this game");
+
+        public static Error PurchaseFailed => Error.Failure(
+            "UserGame.PurchaseFailed",
+            "Failed to purchase game");
+
+        public static Error InvalidPurchasePrice => Error.Validation(
+            "UserGame.InvalidPurchasePrice",
+            "Purchase price must be greater than or equal to zero");
     }
 
     public static class Authentication
