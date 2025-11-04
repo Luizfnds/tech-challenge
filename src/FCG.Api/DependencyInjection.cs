@@ -95,9 +95,8 @@ public static class DependencyInjection
         {
             c.SwaggerDoc("v1", new OpenApiInfo
             {
-                Title = "FCG API",
-                Version = "v1",
-                Description = "API para gerenciamento de jogos e usuários com autenticação AWS Cognito",
+                Title = "FCG - FIAP Cloud Games API",
+                Version = "v1"
             });
 
             c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme

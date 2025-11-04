@@ -1,119 +1,64 @@
-# 🚀 FCG - FIAP Pós-Graduação
+# FCG - FIAP Cloud Games
 
-API REST de autenticação e gerenciamento de usuários com AWS Cognito.  
-**Projeto da Pós-Graduação em Arquitetura de Sistemas .NET - FIAP 2025**
+**Tech Challenge - Fase 1**  
+Plataforma de venda de jogos digitais e gestão de usuários.
 
----
+## Sobre o Projeto
 
-## 📋 Sobre
+A FIAP Cloud Games (FCG) é uma API REST desenvolvida em .NET 8 para gerenciar usuários, jogos e promoções. Este MVP implementa autenticação segura, cadastro de jogos e biblioteca pessoal de jogos adquiridos.
 
-Sistema que demonstra a aplicação prática de **Clean Architecture**, **CQRS**, **DDD** e integração com serviços cloud (AWS Cognito).
 
----
+## Arquitetura
 
-## 🏗️ Arquitetura e Padrões
-
-### Clean Architecture - Camadas
+O projeto segue **Clean Architecture** com as seguintes camadas:
 
 ```
-├── Api/                    # Controllers, Middlewares, DI
-├── Application/            # Commands, Queries, Handlers (CQRS)
-├── Domain/                 # Entities, Value Objects, Interfaces
-├── Infrastructure.Data/    # EF Core, Repositories, Migrations
-└── Infrastructure.AWS/     # Cognito Integration
+├── FCG.Api/                # Controllers, Middlewares
+├── FCG.Application/        # Commands, Queries (CQRS)
+├── FCG.Domain/            # Entidades, Regras de Negócio
+├── FCG.Infrastructure.Data/    # EF Core, Repositories
+└── FCG.Infrastructure.AWS/     # AWS Cognito
 ```
 
-### Padrões Implementados
+### Padrões Utilizados
+- **CQRS** - Separação de Commands e Queries
+- **DDD** - Domain-Driven Design
+- **Repository Pattern** - Abstração de dados
+- **Mediator Pattern** - MediatR
+- **Dependency Injection** - Inversão de controle
 
-#### 1. **CQRS** (Command Query Responsibility Segregation)
-- **Commands**: Operações de escrita (`SignUpCommand`, `SignInCommand`)
-- **Handlers**: Processamento via MediatR
-- **Validators**: FluentValidation para cada Command
+## Autenticação
 
-```csharp
-// Exemplo: SignUpCommand
-public record SignUpCommand(string Name, string Email, string Password) : IRequest<Guid>;
+Sistema de autenticação via **AWS Cognito** com JWT Bearer:
+- **Cadastro** com validação de senha segura
+- **Confirmação** de email
+- **Login** com token JWT
+- **Dois níveis de acesso**: Admin e User
 
-// Handler correspondente
-public class SignUpCommandHandler : IRequestHandler<SignUpCommand, Guid>
-{
-    // Lógica de criação de usuário
-}
-```
+## Tecnologias
 
-#### 2. **Repository Pattern**
-```csharp
-IBaseRepository<T>          // Operações genéricas CRUD
-IUserRepository             // Operações específicas de User
-```
+- .NET 8
+- ASP.NET Core Web API
+- Entity Framework Core
+- SQL Server
+- AWS Cognito
+- MediatR + FluentValidation
+- xUnit + FluentAssertions
 
-#### 3. **DDD** (Domain-Driven Design)
-- **Entidades Ricas**: `User` com Factory Methods
-- **Value Objects**: `Role` usando Enumeration Pattern
-- **Domain Exceptions**: Validações de negócio
+## Como Executar
 
-```csharp
-// Factory Method
-public static User CreateUser(string name, string email) 
-    => new(name, email, Role.User);
+### Pré-requisitos
+- .NET 8 SDK
+- SQL Server
+- Conta AWS (Cognito configurado)
 
-// Enumeration Pattern
-public sealed class Role
-{
-    public static readonly Role Admin = new(1, "Admin");
-    public static readonly Role User = new(2, "User");
-}
-```
+### Configuração
 
-#### 4. **Dependency Injection**
-Cada camada possui seu próprio `DependencyInjection.cs`:
-
-```csharp
-builder.Services.AddApiServices(configuration);         // Auth + Swagger + CORS
-builder.Services.AddApplicationServices();              // MediatR + FluentValidation
-builder.Services.AddDatabaseInfrastructure(configuration); // EF Core + Repositories
-builder.Services.AddAwsInfrastructure(configuration);   // Cognito
-```
-
-#### 5. **Outros Padrões**
-- **Mediator**: MediatR para desacoplamento
-- **Strategy**: FluentValidation validators
-- **Unit of Work**: DbContext do EF Core
-- **Options**: Configurações tipadas (AWS, Cognito)
-
----
-
-## 🔐 Autenticação JWT (AWS Cognito)
-
-### Fluxo
-1. **SignUp** → Cria usuário no Cognito + Banco local
-2. **ConfirmSignUp** → Confirma email + Adiciona ao grupo (Admin/User)
-3. **SignIn** → Retorna JWT com `cognito:groups`
-4. **Endpoints protegidos** → Validação automática via JWT Bearer
-
-### Políticas de Autorização
-- `AdminOnly`: Requer `cognito:groups = "Admin"`
-- `UserOrAdmin`: Requer apenas autenticação válida
-
----
-
-## �️ Stack Técnica
-
-- **.NET 8** | **ASP.NET Core Web API**
-- **EF Core** (SQL Server) + **Migrations**
-- **MediatR** (CQRS) | **FluentValidation**
-- **AWS Cognito** (JWT Authentication)
-- **Swagger/OpenAPI**
-
----
-
-## 🚀 Como Executar
-
-### 1. Configurar `appsettings.json`
+1. **Configure o `appsettings.json`**:
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost;Database=FCGDB;Trusted_Connection=True;"
+    "DefaultConnection": "Server=localhost;Database=FCGDB;..."
   },
   "AWS": {
     "Region": "us-east-1",
@@ -126,56 +71,59 @@ builder.Services.AddAwsInfrastructure(configuration);   // Cognito
 }
 ```
 
-### 2. Aplicar Migrations
+2. **Configure variáveis de ambiente** (Admin seed):
 ```bash
-dotnet ef database update
+export Admin__Email="admin@fcg.com"
+export Admin__Password="Admin@123"
 ```
 
-### 3. Executar
+3. **Aplique as migrations**:
 ```bash
-dotnet run
+dotnet ef database update --project src/FCG.Infrastructure.Data
 ```
-Acesse: `http://localhost:5005/swagger`
 
----
+4. **Execute o projeto**:
+```bash
+dotnet run --project src/FCG.Api
+```
 
-## � Endpoints Principais
+5. **Acesse o Swagger**: `http://localhost:5005/swagger`
 
-| Método | Endpoint | Autenticação | Descrição |
-|--------|----------|--------------|-----------|
-| POST | `/api/accounts/signup` | ❌ | Cadastro |
-| POST | `/api/accounts/confirm-signup` | ❌ | Confirmar email |
-| POST | `/api/accounts/signin` | ❌ | Login (retorna JWT) |
-| POST | `/api/accounts/change-password` | ✅ User | Alterar senha |
-| POST | `/api/accounts/enable-user` | ✅ Admin | Habilitar usuário |
-| POST | `/api/accounts/disable-user` | ✅ Admin | Desabilitar usuário |
+## Funcionalidades
 
----
+### Usuários
+- Cadastro com validações (email, senha segura)
+- Autenticação JWT
+- Confirmação de email
+- Recuperação de senha
+- Ativação/Desativação (Admin)
 
-## � Princípios SOLID
+### Jogos
+- Cadastro de jogos (Admin)
+- Listagem de jogos ativos
+- Ativação/Desativação (Admin)
+- Compra de jogos (User)
+- Biblioteca pessoal
 
-- **S**ingle Responsibility - Cada classe uma responsabilidade
-- **O**pen/Closed - Extensível via interfaces
-- **L**iskov Substitution - Implementações substituíveis
-- **I**nterface Segregation - Interfaces específicas
-- **D**ependency Inversion - Dependência de abstrações
+### Promoções
+- Criação de promoções com desconto (Admin)
+- Validação de período
+- Listagem de promoções
 
----
+## Estrutura do Banco
 
-## 🎓 Conceitos Demonstrados
+**Entidades principais:**
+- `Users` - Usuários do sistema
+- `Games` - Catálogo de jogos
+- `UserGames` - Biblioteca (relacionamento N:N)
+- `Promotions` - Descontos em jogos
 
-✅ Clean Architecture  
-✅ CQRS Pattern  
-✅ Domain-Driven Design  
-✅ Repository Pattern  
-✅ Dependency Injection  
-✅ JWT Authentication  
-✅ Cloud Integration (AWS)  
-✅ Entity Framework Core  
-✅ FluentValidation  
-✅ Middleware Pipeline  
+## Testes
 
----
+Execute os testes unitários:
+```bash
+dotnet test
+```
 
-**FIAP - Pós-Graduação Arquitetura de Sistemas .NET | 2025**
-
+Testes implementados em:
+- `FCG.Domain.Tests` - Entidades e regras de negócio
