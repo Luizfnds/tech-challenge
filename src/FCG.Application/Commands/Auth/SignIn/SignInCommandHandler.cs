@@ -25,19 +25,19 @@ public class SignInCommandHandler(IAuthenticationService authenticationService) 
         }
         catch (InvalidCredentialsException)
         {
-            return Result.Failure<Token>(DomainErrors.Authentication.InvalidCredentials);
+            return Result.Failure<Token>(ApplicationErrors.Authentication.InvalidCredentials);
         }
         catch (EmailNotConfirmedException)
         {
-            return Result.Failure<Token>(DomainErrors.Authentication.EmailNotConfirmed);
+            return Result.Failure<Token>(ApplicationErrors.Authentication.EmailNotConfirmed);
         }
         catch (UserDisabledException)
         {
-            return Result.Failure<Token>(DomainErrors.Authentication.UserDisabled);
+            return Result.Failure<Token>(ApplicationErrors.Authentication.UserDisabled);
         }
         catch (UserNotFoundException)
         {
-            return Result.Failure<Token>(DomainErrors.Authentication.InvalidCredentials); // Não expor se o usuário existe
+            return Result.Failure<Token>(ApplicationErrors.Authentication.InvalidCredentials);
         }
         catch (LimitExceededException ex)
         {

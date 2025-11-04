@@ -2,7 +2,7 @@ using FCG.Application.Common.Models;
 
 namespace FCG.Application.Common.Errors;
 
-public static class DomainErrors
+public static class ApplicationErrors
 {
     public static class User
     {

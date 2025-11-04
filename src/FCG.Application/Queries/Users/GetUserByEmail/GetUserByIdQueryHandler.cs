@@ -15,7 +15,7 @@ public class GetUserByEmailQueryHandler(IUserRepository userRepository) : IReque
         var user = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
 
         if (user is null)
-            return Result.Failure<User>(DomainErrors.User.NotFound(request.Email));
+            return Result.Failure<User>(ApplicationErrors.User.NotFound(request.Email));
 
         return Result.Success(user);
     }

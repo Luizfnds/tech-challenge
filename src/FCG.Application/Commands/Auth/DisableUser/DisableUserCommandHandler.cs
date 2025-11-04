@@ -23,7 +23,7 @@ public class DisableUserCommandHandler(IAuthenticationService authenticationServ
         }
         catch (UserNotFoundException)
         {
-            return Result.Failure(DomainErrors.Authentication.UserNotFound);
+            return Result.Failure(ApplicationErrors.Authentication.UserNotFound);
         }
         catch (InvalidOperationException ex)
         {

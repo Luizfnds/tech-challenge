@@ -25,19 +25,19 @@ public class ResetPasswordCommandHandler(IAuthenticationService authenticationSe
         }
         catch (InvalidConfirmationCodeException)
         {
-            return Result.Failure(DomainErrors.Authentication.InvalidConfirmationCode);
+            return Result.Failure(ApplicationErrors.Authentication.InvalidConfirmationCode);
         }
         catch (InvalidPasswordException)
         {
-            return Result.Failure(DomainErrors.Authentication.WeakPassword);
+            return Result.Failure(ApplicationErrors.Authentication.WeakPassword);
         }
         catch (UserNotFoundException)
         {
-            return Result.Failure(DomainErrors.Authentication.UserNotFound);
+            return Result.Failure(ApplicationErrors.Authentication.UserNotFound);
         }
         catch (PasswordResetFailedException)
         {
-            return Result.Failure(DomainErrors.Authentication.PasswordResetFailed);
+            return Result.Failure(ApplicationErrors.Authentication.PasswordResetFailed);
         }
         catch (AuthenticationException ex)
         {

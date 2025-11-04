@@ -14,10 +14,10 @@ public class DeactivatePromotionCommandHandler(IPromotionRepository promotionRep
         var promotion = await _promotionRepository.GetByIdAsync(request.PromotionId, cancellationToken);
         
         if (promotion is null)
-            return Result.Failure(DomainErrors.Promotion.NotFound(request.PromotionId));
+            return Result.Failure(ApplicationErrors.Promotion.NotFound(request.PromotionId));
 
         if (!promotion.IsActive)
-            return Result.Failure(DomainErrors.Promotion.AlreadyInactive);
+            return Result.Failure(ApplicationErrors.Promotion.AlreadyInactive);
 
         promotion.Deactivate();
 

@@ -15,7 +15,7 @@ public class GetPromotionByIdQueryHandler(IPromotionRepository promotionReposito
         var promotion = await _promotionRepository.GetByIdAsync(request.PromotionId, cancellationToken);
 
         if (promotion is null)
-            return Result.Failure<Promotion>(DomainErrors.Promotion.NotFound(request.PromotionId));
+            return Result.Failure<Promotion>(ApplicationErrors.Promotion.NotFound(request.PromotionId));
 
         return Result.Success(promotion);
     }

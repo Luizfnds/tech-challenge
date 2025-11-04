@@ -33,7 +33,7 @@ public class CreateGameCommandHandler(IGameRepository gameRepository) : IRequest
         }
         catch (Exception)
         {
-            return Result.Failure<Guid>(DomainErrors.Game.CreationFailed);
+            return Result.Failure<Guid>(ApplicationErrors.Game.CreationFailed);
         }
     }
 }

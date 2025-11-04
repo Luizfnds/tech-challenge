@@ -1,6 +1,5 @@
 using System.Net;
 using System.Text.Json;
-using FCG.Domain.Exceptions;
 using FCG.Application.Common.Exceptions;
 
 namespace FCG.API.Middlewares;
@@ -84,10 +83,10 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
                 break;
 
             // Domain Exceptions
-            case DomainException domainException:
+            case Application.Common.Exceptions.ApplicationException applicationException:
                 statusCode = HttpStatusCode.BadRequest;
                 message = "Domain validation error";
-                errors.Add(domainException.Message);
+                errors.Add(applicationException.Message);
                 break;
 
             // General Exceptions

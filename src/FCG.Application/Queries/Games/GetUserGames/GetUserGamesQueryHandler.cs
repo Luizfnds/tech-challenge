@@ -17,7 +17,7 @@ public class GetUserGamesQueryHandler(
     {
         var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
         if (user is null)
-            return Result.Failure<PagedResult<UserGame>>(DomainErrors.User.NotFound(request.UserId));
+            return Result.Failure<PagedResult<UserGame>>(ApplicationErrors.User.NotFound(request.UserId));
 
         var pagedResult = await _gameRepository.GetUserGamesPagedAsync(
             request.UserId,

@@ -15,7 +15,7 @@ public class GetGameByIdQueryHandler(IGameRepository gameRepository) : IRequestH
         var game = await _gameRepository.GetByIdAsync(request.Id, cancellationToken);
 
         if (game is null)
-            return Result.Failure<Game>(DomainErrors.Game.NotFound(request.Id));
+            return Result.Failure<Game>(ApplicationErrors.Game.NotFound(request.Id));
 
         return Result.Success(game);
     }

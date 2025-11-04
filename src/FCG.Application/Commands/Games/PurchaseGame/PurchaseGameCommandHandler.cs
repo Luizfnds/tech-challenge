@@ -19,18 +19,18 @@ public class PurchaseGameCommandHandler(
     {
         var user = await _userRepository.GetByIdAsync(request.UserId, cancellationToken);
         if (user is null)
-            return Result.Failure<Guid>(DomainErrors.User.NotFound(request.UserId));
+            return Result.Failure<Guid>(ApplicationErrors.User.NotFound(request.UserId));
 
         var game = await _gameRepository.GetByIdAsync(request.GameId, cancellationToken);
         if (game is null)
-            return Result.Failure<Guid>(DomainErrors.Game.NotFound(request.GameId));
+            return Result.Failure<Guid>(ApplicationErrors.Game.NotFound(request.GameId));
 
         if (!game.IsActive)
-            return Result.Failure<Guid>(DomainErrors.UserGame.GameNotActive);
+            return Result.Failure<Guid>(ApplicationErrors.UserGame.GameNotActive);
 
         var alreadyOwned = await _gameRepository.UserOwnsGameAsync(request.UserId, request.GameId, cancellationToken);
         if (alreadyOwned)
-            return Result.Failure<Guid>(DomainErrors.UserGame.AlreadyOwned);
+            return Result.Failure<Guid>(ApplicationErrors.UserGame.AlreadyOwned);
 
         var finalPrice = game.Price;
         var promotion = await _promotionRepository.GetByGameIdAsync(request.GameId, cancellationToken);
@@ -46,7 +46,7 @@ public class PurchaseGameCommandHandler(
 
         var saved = await _gameRepository.SaveChangesAsync(cancellationToken);
         if (!saved)
-            return Result.Failure<Guid>(DomainErrors.UserGame.PurchaseFailed);
+            return Result.Failure<Guid>(ApplicationErrors.UserGame.PurchaseFailed);
 
         return Result.Success(userGame.Id);
     }

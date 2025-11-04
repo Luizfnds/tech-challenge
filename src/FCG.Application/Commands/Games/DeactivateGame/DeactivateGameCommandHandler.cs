@@ -14,7 +14,7 @@ public class DeactivateGameCommandHandler(IGameRepository gameRepository) : IReq
         var game = await _gameRepository.GetByIdAsync(request.Id, cancellationToken);
 
         if (game is null)
-            return Result.Failure(DomainErrors.Game.NotFound(request.Id));
+            return Result.Failure(ApplicationErrors.Game.NotFound(request.Id));
 
         game.Deactivate();
 

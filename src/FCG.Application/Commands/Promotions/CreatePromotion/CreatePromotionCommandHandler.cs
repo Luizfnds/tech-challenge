@@ -19,11 +19,11 @@ public class CreatePromotionCommandHandler(
         {
             var game = await _gameRepository.GetByIdAsync(request.GameId, cancellationToken);
             if (game is null)
-                return Result.Failure<Guid>(DomainErrors.Game.NotFound(request.GameId));
+                return Result.Failure<Guid>(ApplicationErrors.Game.NotFound(request.GameId));
 
             var hasActivePromotion = await _promotionRepository.GameHasActivePromotionAsync(request.GameId, cancellationToken);
             if (hasActivePromotion)
-                return Result.Failure<Guid>(DomainErrors.Promotion.GameAlreadyHasPromotion);
+                return Result.Failure<Guid>(ApplicationErrors.Promotion.GameAlreadyHasPromotion);
 
             var promotion = Promotion.Create(
                 request.GameId,
@@ -36,7 +36,7 @@ public class CreatePromotionCommandHandler(
 
             var saved = await _promotionRepository.SaveChangesAsync(cancellationToken);
             if (!saved)
-                return Result.Failure<Guid>(DomainErrors.Promotion.CreationFailed);
+                return Result.Failure<Guid>(ApplicationErrors.Promotion.CreationFailed);
 
             return Result.Success(promotion.Id);
         }
@@ -46,7 +46,7 @@ public class CreatePromotionCommandHandler(
         }
         catch (Exception)
         {
-            return Result.Failure<Guid>(DomainErrors.Promotion.CreationFailed);
+            return Result.Failure<Guid>(ApplicationErrors.Promotion.CreationFailed);
         }
     }
 }

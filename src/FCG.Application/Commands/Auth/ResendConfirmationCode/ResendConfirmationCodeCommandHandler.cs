@@ -23,7 +23,7 @@ public class ResendConfirmationCodeCommandHandler(IAuthenticationService authent
         }
         catch (UserNotFoundException)
         {
-            return Result.Failure(DomainErrors.Authentication.UserNotFound);
+            return Result.Failure(ApplicationErrors.Authentication.UserNotFound);
         }
         catch (LimitExceededException ex)
         {

@@ -24,11 +24,11 @@ public class ConfirmSignUpCommandHandler(IAuthenticationService authenticationSe
         }
         catch (InvalidConfirmationCodeException)
         {
-            return Result.Failure(DomainErrors.Authentication.InvalidConfirmationCode);
+            return Result.Failure(ApplicationErrors.Authentication.InvalidConfirmationCode);
         }
         catch (UserNotFoundException)
         {
-            return Result.Failure(DomainErrors.Authentication.UserNotFound);
+            return Result.Failure(ApplicationErrors.Authentication.UserNotFound);
         }
         catch (AuthenticationException ex)
         {

@@ -16,7 +16,7 @@ public class UpdateGameCommandHandler(IGameRepository gameRepository) : IRequest
             var game = await _gameRepository.GetByIdAsync(request.Id, cancellationToken);
 
             if (game is null)
-                return Result.Failure(DomainErrors.Game.NotFound(request.Id));
+                return Result.Failure(ApplicationErrors.Game.NotFound(request.Id));
 
             game.Update(
                 request.Title,
@@ -37,7 +37,7 @@ public class UpdateGameCommandHandler(IGameRepository gameRepository) : IRequest
         }
         catch (Exception)
         {
-            return Result.Failure(DomainErrors.Game.UpdateFailed);
+            return Result.Failure(ApplicationErrors.Game.UpdateFailed);
         }
     }
 }

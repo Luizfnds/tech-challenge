@@ -25,7 +25,6 @@ public class UserGameConfiguration : IEntityTypeConfiguration<UserGame>
             .HasColumnType("decimal(18,2)")
             .IsRequired();
 
-        // Relationships
         builder.HasOne(ug => ug.User)
             .WithMany(u => u.UserGames)
             .HasForeignKey(ug => ug.UserId)

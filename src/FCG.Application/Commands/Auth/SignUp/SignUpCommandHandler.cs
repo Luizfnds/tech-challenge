@@ -17,17 +17,14 @@ public class SignUpCommandHandler(IUserRepository userRepository, IAuthenticatio
     {
         try
         {
-            // Verificar se o email já existe
             if (await _userRepository.EmailExistsAsync(request.Email))
-                return Result.Failure<Guid>(DomainErrors.User.EmailAlreadyExists(request.Email));
+                return Result.Failure<Guid>(ApplicationErrors.User.EmailAlreadyExists(request.Email));
 
-            // Criar usuário
             var user = User.CreateUser(
                 request.Name,
                 request.Email
             );
 
-            // Registrar no Cognito
             var cognitoUserId = await _authenticationService.SignUpAsync(
                 user,
                 request.Password,
@@ -36,14 +33,13 @@ public class SignUpCommandHandler(IUserRepository userRepository, IAuthenticatio
 
             user.SetAccountId(cognitoUserId);
 
-            // Salvar no banco de dados
             await _userRepository.AddAsync(user);
 
             return Result.Success(user.Id);
         }
         catch (UserAlreadyExistsException)
         {
-            return Result.Failure<Guid>(DomainErrors.User.EmailAlreadyExists(request.Email));
+            return Result.Failure<Guid>(ApplicationErrors.User.EmailAlreadyExists(request.Email));
         }
         catch (InvalidPasswordException ex)
         {

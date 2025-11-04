@@ -25,15 +25,15 @@ public class ChangePasswordCommandHandler(IAuthenticationService authenticationS
         }
         catch (InvalidCredentialsException)
         {
-            return Result.Failure(DomainErrors.Authentication.InvalidCredentials);
+            return Result.Failure(ApplicationErrors.Authentication.InvalidCredentials);
         }
         catch (InvalidTokenException)
         {
-            return Result.Failure(DomainErrors.Authentication.InvalidToken);
+            return Result.Failure(ApplicationErrors.Authentication.InvalidToken);
         }
         catch (InvalidPasswordException)
         {
-            return Result.Failure(DomainErrors.Authentication.WeakPassword);
+            return Result.Failure(ApplicationErrors.Authentication.WeakPassword);
         }
         catch (LimitExceededException ex)
         {
