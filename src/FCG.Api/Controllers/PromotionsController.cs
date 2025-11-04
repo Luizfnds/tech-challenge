@@ -39,7 +39,6 @@ public class PromotionsController(IMediator mediator) : ControllerBase
         var items = pagedResult.Items.Select(p => new PromotionItemResponse(
             p.Id,
             p.GameId,
-            p.Game.Title,
             p.DiscountPercentage,
             p.StartDate,
             p.EndDate,
@@ -79,7 +78,6 @@ public class PromotionsController(IMediator mediator) : ControllerBase
         var response = new PromotionItemResponse(
             promotion.Id,
             promotion.GameId,
-            promotion.Game.Title,
             promotion.DiscountPercentage,
             promotion.StartDate,
             promotion.EndDate,

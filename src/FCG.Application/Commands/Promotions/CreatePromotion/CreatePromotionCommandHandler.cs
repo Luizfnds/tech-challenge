@@ -34,10 +34,6 @@ public class CreatePromotionCommandHandler(
 
             await _promotionRepository.AddAsync(promotion, cancellationToken);
 
-            var saved = await _promotionRepository.SaveChangesAsync(cancellationToken);
-            if (!saved)
-                return Result.Failure<Guid>(ApplicationErrors.Promotion.CreationFailed);
-
             return Result.Success(promotion.Id);
         }
         catch (ArgumentException ex)
