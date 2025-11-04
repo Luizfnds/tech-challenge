@@ -118,6 +118,12 @@ dotnet run --project src/FCG.Api
 - `UserGames` - Biblioteca (relacionamento N:N)
 - `Promotions` - Descontos em jogos
 
+## Domain-Driven Design (DDD)
+
+### Event Storming - Fluxo Principal
+
+![alt text](image.png)
+
 ## Testes
 
 Execute os testes unitários:
